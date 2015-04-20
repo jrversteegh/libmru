@@ -42,6 +42,20 @@ void I2CBus::select_address(const int address)
   selected_address_ = address;
 }
 
+Ints I2CBus::scan() {
+    Ints result;
+    for (int i=1; i<256; ++i) {
+      try {
+        select_address(i);
+        if (i2c_smbus_read_byte(file_) >= 0) {
+          result.push_back(i);  
+        }
+      } 
+      catch(Error) {
+      }
+    }
+    return result;
+  }
 void I2CDevice::write_byte(const int offset, const Byte value) const
 {
   select_();

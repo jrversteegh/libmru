@@ -1,5 +1,19 @@
+#ifndef NINEDOF_I2CBUS_
+#define NINEDOF_I2CBUS_
+
 #include <cstdint>
 #include <vector>
+
+#include "errors.h"
+
+typedef uint8_t Byte;
+typedef uint16_t Word;
+typedef std::vector<Byte> Bytes;
+typedef std::vector<Word> Words;
+typedef std::vector<int> Ints;
+typedef Bytes::iterator Byte_i;
+typedef Words::iterator Word_i;
+typedef Ints::iterator Int_i ;
 
 struct I2CBus {
   I2CBus(int busno): file_(0), busno_(busno) {
@@ -19,6 +33,7 @@ struct I2CBus {
   const int get_file() const { return file_; }
   const int get_selected_address() const { return selected_address_; }
   void select_address(const int address);
+  Ints scan(); 
 private:
   int file_;
   int busno_;
@@ -27,13 +42,6 @@ private:
   void open_bus_();
   void close_bus_();
 };
-
-typedef uint8_t Byte;
-typedef uint16_t Word;
-typedef std::vector<Byte> Bytes;
-typedef std::vector<Word> Words;
-typedef Bytes::iterator Byte_i;
-typedef Words::iterator Word_i;
 
 struct I2CDevice {
   I2CDevice(I2CBus& bus, int address, bool little_endian=true): 
@@ -59,3 +67,5 @@ private:
     }
   }
 };
+
+#endif

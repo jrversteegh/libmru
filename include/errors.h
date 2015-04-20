@@ -1,3 +1,6 @@
+#ifndef NINEDOF_ERRORS_
+#define NINEDOF_ERRORS_
+
 #include <string> 
 #include <sstream> 
 
@@ -12,3 +15,5 @@ private:
   int error_;
   std::string message_; 
 };
+
+#endif
