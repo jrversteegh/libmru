@@ -12,8 +12,8 @@ struct Error {
     return os.str();
   }
 private: 
-  int error_;
   std::string message_; 
+  int error_;
 };
 
 #endif

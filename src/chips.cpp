@@ -1,5 +1,7 @@
 #include "../include/chips.h"
 
+namespace ninedof {
+
 const int compass_address = 0x1e;
 const int acceleration_address = 0x53;
 const int gyro_address = 0x68;
@@ -30,3 +32,4 @@ void ITG3200::poll()
 {
 }
 
+}  // namespace ninedof

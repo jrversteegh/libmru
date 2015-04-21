@@ -9,6 +9,9 @@
 #include "../../include/chips.h"
 #include "../../include/errors.h"
 
+using namespace ninedof;
+using namespace std;
+
 int busno = 0;
 
 class I2CBusTest: public CppUnit::TestFixture {
@@ -25,12 +28,52 @@ class I2CBusTest: public CppUnit::TestFixture {
     CPPUNIT_ASSERT_EQUAL(gyro_address, addrs[2]);
   }
   void testDeviceRead() {
+    // This test may fail when the sensor values changes between reads
+    const int regaddr = 0x2C;
     I2CBus bus(busno);
-    I2CDevice(bus, acceleration_address);
+    I2CDevice device(bus, acceleration_address);
+    Byte b = device.read_byte(regaddr);
+    Word w = device.read_word(regaddr);
+    Words ws = device.read_words(regaddr, 2);
+    Bytes bs = device.read_bytes(regaddr, 4);
+    CPPUNIT_ASSERT_EQUAL((int)b, (int)bs[0] );
+    CPPUNIT_ASSERT_EQUAL((int)w, (int)ws[0] );
+    CPPUNIT_ASSERT_EQUAL((int)bs[0], ((int)ws[0] & 0xFF));
+    CPPUNIT_ASSERT_EQUAL((int)bs[1], ((int)ws[0] >> 8));
+    CPPUNIT_ASSERT_EQUAL((int)bs[2], ((int)ws[1] & 0xFF));
+    CPPUNIT_ASSERT_EQUAL((int)bs[3], ((int)ws[1] >> 8));
+    // Test big endian word reading
+    I2CDevice device2 = I2CDevice(bus, acceleration_address, false);
+    w = device2.read_word(regaddr);
+    ws = device2.read_words(regaddr, 2);
+    // This is somewhat arbitrary: we demand the bytes are different so
+    // the test of the byte order becomes valid.
+    CPPUNIT_ASSERT((int)bs[0] != (int)bs[1]);
+    CPPUNIT_ASSERT_EQUAL((int)w, (int)ws[0] );
+    CPPUNIT_ASSERT_EQUAL((int)bs[0], ((int)ws[0] >> 8));
+    CPPUNIT_ASSERT_EQUAL((int)bs[1], ((int)ws[0] & 0xFF));
   }
   void testDeviceWrite() {
     I2CBus bus(busno);
-    I2CDevice(bus, acceleration_address);
+    I2CDevice device(bus, acceleration_address);
+    Bytes bs;
+    bs.push_back(0x08);
+    bs.push_back(0x80);
+    device.write_bytes(0x2D, bs);
+    Byte b = device.read_byte(0x2E);
+    CPPUNIT_ASSERT_EQUAL(0x80, (int)b);
+    device.write_word(0x2D, 0x9008);
+    b = device.read_byte(0x2E);
+    CPPUNIT_ASSERT_EQUAL(0x90, (int)b);
+    I2CDevice device2(bus, acceleration_address, false);
+    Words ws;
+    ws.push_back(0x0880);
+    device2.write_words(0x2D, ws);
+    b = device2.read_byte(0x2E);
+    CPPUNIT_ASSERT_EQUAL(0x80, (int)b);
+    device2.write_word(0x2D, 0);
+    b = device2.read_byte(0x2E);
+    CPPUNIT_ASSERT_EQUAL(0x0, (int)b);
   }
 public:
   CPPUNIT_TEST_SUITE(I2CBusTest);

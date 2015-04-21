@@ -5,6 +5,8 @@
 
 #include "../../include/chips.h"
 
+using namespace ninedof;
+
 class ADXL345Test: public CppUnit::TestFixture {
   void testDummy() {
   }

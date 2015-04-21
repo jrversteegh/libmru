@@ -6,7 +6,7 @@
 int main()
 {
   std::cout << "9 degrees stick" << std::endl;
-  I2CBus bus(0);
+  ninedof::I2CBus bus(0);
   return 0;
 }
 #endif
