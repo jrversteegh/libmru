@@ -1,5 +1,6 @@
 TARGET := ninedof
 LIBS := -lCGAL
+# Rounding math required by CGAL
 CFLAGS := -frounding-math
 SOURCES := $(wildcard src/*.cpp)
 HEADERS := $(wildcard include/*.h)
