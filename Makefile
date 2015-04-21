@@ -1,4 +1,6 @@
 TARGET := ninedof
+LIBS := -lCGAL
+CFLAGS := -frounding-math
 SOURCES := $(wildcard src/*.cpp)
 HEADERS := $(wildcard include/*.h)
 TEST_SOURCES := $(wildcard src/test/*.cpp)
@@ -9,7 +11,7 @@ all: $(TARGET)
 
 	
 $(TARGET): $(SOURCES) $(HEADERS)
-	g++ -DHASMAIN -std=c++0x -o $@ $(SOURCES)
+	g++ $(CFLAGS) -DHASMAIN -std=c++0x $(LIBS) -o $@ $(SOURCES)
 
 run: $(TARGET)
 	./$(TARGET)
@@ -18,7 +20,7 @@ clean:
 	rm -f $(TARGET) $(TEST_TARGETS)
 
 test_%.run: test_%.cpp $(SOURCES) $(HEADERS)
-	g++ -Wall -std=c++0x -lcppunit -o $@ $< $(SOURCES)
+	g++ -Wall $(CFLAGS) -std=c++0x -lcppunit $(LIBS) -o $@ $< $(SOURCES)
 
 .PHONY: $(TEST_RUN) test test_message
 $(TEST_RUN): $(TEST_TARGETS)
