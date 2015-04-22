@@ -28,7 +28,7 @@ struct HMC5843: public Chip {
   virtual void initialize();
   virtual void poll();
   virtual void finalize();
-  HMC5843(I2CBus& bus): Chip(bus, compass_address, true) {}
+  HMC5843(I2CBus& bus): Chip(bus, compass_address, false) {}
 };
 
 struct ADXL345: public Chip {
@@ -43,7 +43,10 @@ struct ITG3200: public Chip {
   virtual void initialize();
   virtual void poll();
   virtual void finalize();
-  ITG3200(I2CBus& bus): Chip(bus, gyro_address, true) {}
+  ITG3200(I2CBus& bus): Chip(bus, gyro_address, false) {}
+  const Number_type temp() const { return temp_; }
+protected:
+  Number_type temp_;
 };
 
 } //namespace ninedof
