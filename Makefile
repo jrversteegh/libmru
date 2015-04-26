@@ -1,9 +1,11 @@
 TARGET := ninedof
 LIBS := -lCGAL
 # Rounding math required by CGAL
-CFLAGS := -frounding-math
-SOURCES := $(wildcard src/*.cpp)
+CFLAGS := -frounding-math -std=c++0x
+SOURCES := $(wildcard src/*.cc)
+TARGET_SOURCE := src/ninedof.cpp
 HEADERS := $(wildcard include/*.h)
+OBJS := $(patsubst %.cc, %.o, $(SOURCES))
 TEST_SOURCES := $(wildcard src/test/*.cpp)
 TEST_TARGETS := $(patsubst %.cpp, %.run, $(TEST_SOURCES))
 TEST_RUN := $(patsubst %.run, %, $(TEST_TARGETS))
@@ -11,8 +13,11 @@ TEST_RUN := $(patsubst %.run, %, $(TEST_TARGETS))
 all: $(TARGET)
 
 	
-$(TARGET): $(SOURCES) $(HEADERS)
-	g++ $(CFLAGS) -DHASMAIN -std=c++0x $(LIBS) -o $@ $(SOURCES)
+%.o: %.cc $(HEADERS)
+	g++ -c $(CFLAGS)  -o $@ $<
+
+$(TARGET): $(OBJS) $(TARGET_SOURCE)
+	g++ $(CFLAGS) $(LIBS) -o $@ $(OBJS) $(TARGET_SOURCE)
 
 run: $(TARGET)
 	./$(TARGET)
@@ -20,8 +25,8 @@ run: $(TARGET)
 clean:
 	rm -f $(TARGET) $(TEST_TARGETS)
 
-test_%.run: test_%.cpp $(SOURCES) $(HEADERS)
-	g++ -Wall $(CFLAGS) -std=c++0x -lcppunit $(LIBS) -o $@ $< $(SOURCES)
+test_%.run: test_%.cpp $(OBJS) 
+	g++ -Wall $(CFLAGS) -std=c++0x -lcppunit $(LIBS) -o $@ $< $(OBJS)
 
 .PHONY: $(TEST_RUN) test test_message
 $(TEST_RUN): $(TEST_TARGETS)
@@ -36,4 +41,9 @@ test_message:
 	@echo '*******************************************************************'
 
 test: test_message $(TEST_RUN)
+
+show:
+	@echo $(HEADERS)
+	@echo $(SOURCES)
+	@echo $(OBJS)
 

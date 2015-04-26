@@ -22,10 +22,10 @@ void ADXL345::poll()
 {
   Words words = device_.read_words(0x32, 3);
   raw_ = Vector(
-      static_cast<Number_type>(words[0]),
-      static_cast<Number_type>(words[1]),
-      static_cast<Number_type>(words[2])
-      ) * 0.004;
+            static_cast<Number_type>(static_cast<int16_t>(words[0])) *  0.0038 * 9.81,
+            static_cast<Number_type>(static_cast<int16_t>(words[1])) * -0.0038 * 9.81,
+            static_cast<Number_type>(static_cast<int16_t>(words[2])) * -0.00392 * 9.81 - 1.28
+         );
 }
 
 void ADXL345::finalize()
@@ -53,10 +53,10 @@ void HMC5843::poll()
   if (ready) {
     Words words = device_.read_words(0x03, 3);
     raw_ = Vector(
-        static_cast<Number_type>(words[1]),
-        static_cast<Number_type>(words[0]),
-        static_cast<Number_type>(words[2])
-        ) * 0.4883;  // 100muT / 2048 range
+        static_cast<Number_type>(static_cast<int16_t>(words[1])),
+        static_cast<Number_type>(static_cast<int16_t>(words[0])),
+        static_cast<Number_type>(static_cast<int16_t>(words[2]))
+        ) * 0.3;  // 100muT / 2048 range
   }
 }
 
@@ -81,9 +81,9 @@ void ITG3200::poll()
   Words words = device_.read_words(0x1B, 3);
   temp_ = static_cast<Number_type>(words[0]);
   raw_ = Vector(
-      static_cast<Number_type>(words[1]),
-      static_cast<Number_type>(words[2]),
-      static_cast<Number_type>(words[3])
+      static_cast<Number_type>(static_cast<int16_t>(words[1])),
+      static_cast<Number_type>(static_cast<int16_t>(words[2])),
+      static_cast<Number_type>(static_cast<int16_t>(words[3]))
       ) * 0.0010652; // 34.9(2000deg) rad/sec / 32768
 }
 

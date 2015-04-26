@@ -1,3 +1,6 @@
+#include <iostream>
+#include <sstream>
+
 #include <cppunit/TestFixture.h>
 #include <cppunit/TestAssert.h>
 #include <cppunit/ui/text/TestRunner.h>
@@ -19,9 +22,16 @@ class CGALTest: public CppUnit::TestFixture {
     Vector v3 = v1 + v2;
     CPPUNIT_ASSERT_EQUAL(Vector(3, 4, 6), v3);
   }
+  void testOutput() {
+    Vector v1(1.1,2,3);
+    ostringstream os;
+    os << v1;
+    CPPUNIT_ASSERT_EQUAL(string("1.1 2 3"), os.str());
+  }
 public:
   CPPUNIT_TEST_SUITE(CGALTest);
   CPPUNIT_TEST(testVectorArithmetic);
+  CPPUNIT_TEST(testOutput);
   CPPUNIT_TEST_SUITE_END();
 };
 
