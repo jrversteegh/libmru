@@ -22,8 +22,8 @@ void ADXL345::poll()
 {
   Words words = device_.read_words(0x32, 3);
   raw_ = Vector(
-            static_cast<Number_type>(static_cast<int16_t>(words[0])) *  0.0038 * 9.81,
-            static_cast<Number_type>(static_cast<int16_t>(words[1])) * -0.0038 * 9.81,
+            static_cast<Number_type>(static_cast<int16_t>(words[0])) *  0.00378 * 9.81 - 0.15,
+            static_cast<Number_type>(static_cast<int16_t>(words[1])) * -0.00378 * 9.81 + 0.15,
             static_cast<Number_type>(static_cast<int16_t>(words[2])) * -0.00392 * 9.81 - 1.28
          );
 }
