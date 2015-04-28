@@ -34,17 +34,17 @@ int main()
   acceleration.initialize();
   gyro.initialize();
 
-  this_thread::sleep_for(chrono::milliseconds(500));
+  this_thread::sleep_for(chrono::milliseconds(1000));
 
-  for (int i =0; i < 120; ++i) {
+  for (int i =0; i < 600; ++i) {
     compass.poll();
     acceleration.poll();
     gyro.poll();
 
-//    cout << "     Compass: " << *compass.raw() << endl;
-    cout << "Acceleration: " << *acceleration.raw() << endl;
+    cout << "     Compass, gyro: " << *compass.raw() << " " << *gyro.raw() << endl;
+//    cout << "Acceleration: " << *acceleration.raw() << endl;
 //    cout << "        Gyro: " << *gyro.raw() << endl;
-    this_thread::sleep_for(chrono::milliseconds(1000));
+    this_thread::sleep_for(chrono::milliseconds(97));
   }
 
   compass.finalize();

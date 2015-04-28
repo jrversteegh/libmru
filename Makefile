@@ -3,24 +3,28 @@ LIBS := -lCGAL
 # Rounding math required by CGAL
 CFLAGS := -frounding-math -std=c++0x
 SOURCES := $(wildcard src/*.cc)
-TARGET_SOURCE := src/ninedof.cpp
+TARGET_SOURCE := src/$(TARGET).cpp
+TARGET_OBJ := src/$(TARGET).o
 HEADERS := $(wildcard include/*.h)
 OBJS := $(patsubst %.cc, %.o, $(SOURCES))
 TEST_SOURCES := $(wildcard src/test/*.cpp)
 TEST_TARGETS := $(patsubst %.cpp, %.run, $(TEST_SOURCES))
 TEST_RUN := $(patsubst %.run, %, $(TEST_TARGETS))
 
-all: $(TARGET)
 
+all: $(TARGET)
 	
 %.o: %.cc $(HEADERS)
 	g++ -c $(CFLAGS)  -o $@ $<
 
-$(TARGET): $(OBJS) $(TARGET_SOURCE)
-	g++ $(CFLAGS) $(LIBS) -o $@ $(OBJS) $(TARGET_SOURCE)
+%.o: %.cpp $(HEADERS)
+	g++ -c $(CFLAGS)  -o $@ $<
+
+$(TARGET): $(OBJS) $(TARGET_OBJ)
+	g++ $(CFLAGS) $(LIBS) -o $@ $(OBJS) $(TARGET_OBJ)
 
 run: $(TARGET)
-	./$(TARGET)
+	time ./$(TARGET)
 
 clean:
 	rm -f $(TARGET) $(TEST_TARGETS)
