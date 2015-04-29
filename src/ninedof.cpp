@@ -41,10 +41,10 @@ int main()
     acceleration.poll();
     gyro.poll();
 
-    cout << "     Compass, gyro: " << *compass.raw() << " " << *gyro.raw() << endl;
-//    cout << "Acceleration: " << *acceleration.raw() << endl;
-//    cout << "        Gyro: " << *gyro.raw() << endl;
-    this_thread::sleep_for(chrono::milliseconds(97));
+    cout << "     Compass: " << *compass.raw() << endl;
+    cout << "Acceleration: " << *acceleration.raw() << endl;
+    cout << "        Gyro: " << *gyro.raw() << endl;
+    this_thread::sleep_for(chrono::milliseconds(997));
   }
 
   compass.finalize();

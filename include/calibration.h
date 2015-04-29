@@ -1,8 +1,8 @@
-#define accel_x_fact ( 3.78 * 9810)
+#define accel_x_fact ( 3.78 * 0.00981)
 #define accel_x_offs (-0.15)
-#define accel_y_fact (-3.78 * 9810)
+#define accel_y_fact (-3.78 * 0.009810)
 #define accel_y_offs ( 0.15)
-#define accel_z_fact (-3.92 * 9810)
+#define accel_z_fact (-3.92 * 0.009810)
 #define accel_z_offs (-1.22)
 
 #define comp_x_fact ( 0.085)
