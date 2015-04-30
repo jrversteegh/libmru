@@ -29,12 +29,12 @@ typedef struct Sample {
   Sample(const Vector_t& vr): time(boost::posix_time::microsec_clock::universal_time()), vector(vr), value() {}
   Sample(const Vector_t& vr, const Value_t& v): time(boost::posix_time::microsec_clock::universal_time()), vector(vr), value(v) {}
   Sample(Sample&& s): time(std::move(s.time)), vector(std::move(s.vector)), value(std::move(s.value)) {}
-  const Sample& operator=(const Sample& s) {
+  Sample& operator=(const Sample& s) {
     time = s.time;
     vector = s.vector;
     value = s.value;
   }
-  Sample&& operator=(Sample&& s) {
+  Sample& operator=(Sample&& s) {
     time = std::move(s.time);
     vector = std::move(s.vector);
     value = std::move(s.value);
