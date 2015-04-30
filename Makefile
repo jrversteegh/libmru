@@ -1,5 +1,5 @@
 TARGET := ninedof
-LIBS := -lCGAL -lncurses
+LIBS := -lCGAL
 # Rounding math required by CGAL
 CFLAGS := -frounding-math -std=c++0x -march=native -O2
 SOURCES := $(wildcard src/*.cc)
