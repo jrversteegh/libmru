@@ -4,13 +4,17 @@
 #include <iomanip>
 #include <cmath>
 
+#include <signal.h>
+
 #include "../include/types.h"
 #include "../include/i2cbus.h"
 #include "../include/chips.h"
+#include "../include/errors.h"
 
 
 using namespace ninedof;
 using namespace std;
+using namespace std::chrono;
 
 ostream& operator<<(ostream& o, const Vector_t& v) {
   o << fixed << setprecision(3);
@@ -21,39 +25,68 @@ ostream& operator<<(ostream& o, const Vector_t& v) {
   return o;
 }
 
+bool volatile quit = false;
+
+void signal_handler(int sig) {
+  quit = true;
+}
+
 int main()
 {
+  signal(SIGINT, &signal_handler);
   cout << "Sparkfun 9 DOF stick" << endl;
+  cout << "Press 'CTRL-C' to quit." << endl;
+  cout << "Set \"NINEDOF_SAMPLE_RATE\" for other rates than 1Hz." << endl;
+  cout << "Set \"NINEDOF_I2C_BUS\" for i2c bus other than 0." << endl;
   cout << "Time, Compass, Acceleration, Gyro, Gyro Temp." << endl;
-  I2CBus bus(0);
 
-  HMC5843 compass(bus);
-  ADXL345 acceleration(bus);
-  ITG3200 gyro(bus);
-
-  compass.initialize();
-  acceleration.initialize();
-  gyro.initialize();
-
-  this_thread::sleep_for(chrono::milliseconds(1000));
-
-  for (int i =0; i < 600; ++i) {
-    compass.poll();
-    acceleration.poll();
-    gyro.poll();
-
-    cout << "t,C,A,G,T: " << 
-      compass.data().time << " ## " <<
-      compass.data().vector << " ## " <<
-      acceleration.data().vector << " ## " <<
-      gyro.data().vector << " ## " <<
-      gyro.temp() <<
-      endl;
-    this_thread::sleep_for(chrono::milliseconds(97));
+  char *i2c_bus = getenv("NINEDOF_I2C_BUS");
+  int busno = 0;
+  if (i2c_bus != 0) {
+    busno = atoi(i2c_bus);
   }
+  try {
+    I2CBus bus(busno);
 
-  compass.finalize();
-  acceleration.finalize();
-  gyro.finalize();
-  return 0;
+    HMC5843 compass(bus);
+    ADXL345 acceleration(bus);
+    ITG3200 gyro(bus);
+
+    compass.initialize();
+    acceleration.initialize();
+    gyro.initialize();
+
+    int wait = 1000;
+    char *sample_rate = getenv("NINEDOF_SAMPLE_RATE");
+    if (sample_rate != 0) {
+      wait = 1000 / atoi(sample_rate);
+    }
+    system_clock::time_point next_time = high_resolution_clock::now();
+
+    while (!quit) {
+      next_time += milliseconds(wait);
+      this_thread::sleep_until(next_time);
+
+      compass.poll();
+      acceleration.poll();
+      gyro.poll();
+
+      cout << 
+        compass.data().time << " ## " <<
+        compass.data().vector << " ## " <<
+        acceleration.data().vector << " ## " <<
+        gyro.data().vector << " ## " <<
+        gyro.temp() <<
+        endl;
+    }
+
+    compass.finalize();
+    acceleration.finalize();
+    gyro.finalize();
+    cout << "Finalized." << endl;
+    return 0;
+  } catch (const Error& e) {
+    cerr << e.get_message() << endl;
+    return 1;
+  }
 }
