@@ -57,11 +57,13 @@ typedef struct Sample {
     time = s.time;
     vector = s.vector;
     value = s.value;
+    return *this;
   }
   Sample& operator=(Sample&& s) {
     time = std::move(s.time);
     vector = std::move(s.vector);
     value = std::move(s.value);
+    return *this;
   }
 } Sample_t;
 typedef std::deque<Sample_t> Samples_t;

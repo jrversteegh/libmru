@@ -40,15 +40,17 @@ struct Chip {
   Chip(I2CBus& bus, const int address, bool little_endian): 
       device_(bus, address, little_endian), data_(), history_() {}
 protected:
-  const Chip& push_sample(const Sample_t& sample) {
+  Chip& push_sample(const Sample_t& sample) {
     history_.push_back(sample);
     data_ = history_.back();
     trim_history();
+    return *this;
   }
-  const Chip& push_sample(Sample_t&& sample) {
+  Chip& push_sample(Sample_t&& sample) {
     history_.push_back(sample);
     data_ = history_.back();
     trim_history();
+    return *this;
   }
   I2CDevice& device() { return device_; }
 private:
