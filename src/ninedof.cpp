@@ -12,18 +12,19 @@
 using namespace ninedof;
 using namespace std;
 
-ostream& operator<<(ostream& o, const Vector& v) {
+ostream& operator<<(ostream& o, const Vector_t& v) {
   o << fixed << setprecision(3);
-  o << setw(10) << v.x();
-  o << setw(10) << v.y();
-  o << setw(10) << v.z();
-  o << setw(10) << sqrt(v.squared_length());
+  o << setw(8) << v.x();
+  o << setw(8) << v.y();
+  o << setw(8) << v.z();
+  o  << " :" << setw(8) << sqrt(v.squared_length());
   return o;
 }
 
 int main()
 {
-  cout << "9 degrees stick" << endl;
+  cout << "Sparkfun 9 DOF stick" << endl;
+  cout << "Time, Compass, Acceleration, Gyro, Gyro Temp." << endl;
   I2CBus bus(0);
 
   HMC5843 compass(bus);
@@ -41,10 +42,14 @@ int main()
     acceleration.poll();
     gyro.poll();
 
-    cout << "     Compass: " << *compass.raw() << endl;
-    cout << "Acceleration: " << *acceleration.raw() << endl;
-    cout << "        Gyro: " << *gyro.raw() << endl;
-    this_thread::sleep_for(chrono::milliseconds(997));
+    cout << "t,C,A,G,T: " << 
+      compass.data().time << " ## " <<
+      compass.data().vector << " ## " <<
+      acceleration.data().vector << " ## " <<
+      gyro.data().vector << " ## " <<
+      gyro.temp() <<
+      endl;
+    this_thread::sleep_for(chrono::milliseconds(97));
   }
 
   compass.finalize();

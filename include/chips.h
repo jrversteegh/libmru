@@ -3,6 +3,7 @@
 
 #include "types.h"
 #include "i2cbus.h"
+#include "calibration.h"
 
 namespace ninedof {
 
@@ -14,14 +15,31 @@ struct Chip {
   virtual void initialize() = 0;
   virtual void poll() = 0;
   virtual void finalize() = 0;
-  const Vector* const raw() const { return &raw_; }
-  const Vector* const data() const { return &data_; }
+  const Sample_t& data() const { return data_; }
+  const Samples_t& history() const { return history_; }
   Chip(I2CBus& bus, const int address, bool little_endian): 
-      device_(bus, address, little_endian), raw_(), data_() {}
+      device_(bus, address, little_endian), data_(), history_() {}
 protected:
+  const Chip& push_sample(const Sample_t& sample) {
+    history_.push_back(sample);
+    data_ = history_.back();
+    trim_history();
+  }
+  const Chip& push_sample(Sample_t&& sample) {
+    history_.push_back(sample);
+    data_ = history_.back();
+    trim_history();
+  }
+  I2CDevice& device() { return device_; }
+private:
   I2CDevice device_;
-  Vector raw_;
-  Vector data_;
+  Sample_t data_;
+  Samples_t history_;
+  void trim_history() {
+    while (history_.size() > history_item_count) {
+      history_.pop_front();
+    }
+  }
 };
 
 struct HMC5843: public Chip {
@@ -44,9 +62,7 @@ struct ITG3200: public Chip {
   virtual void poll();
   virtual void finalize();
   ITG3200(I2CBus& bus): Chip(bus, gyro_address, false) {}
-  const Number_type temp() const { return temp_; }
-protected:
-  Number_type temp_;
+  const Value_t temp() const { return data().value; }
 };
 
 } //namespace ninedof
