@@ -24,6 +24,9 @@ $(TARGET): $(OBJS) $(TARGET_OBJ)
 	g++ $(CFLAGS) $(LIBS) -o $@ $(OBJS) $(TARGET_OBJ)
 
 run: $(TARGET)
+	./$(TARGET)
+
+timeit: $(TARGET)
 	time ./$(TARGET)
 
 clean:
