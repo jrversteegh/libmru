@@ -19,6 +19,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 extern "C" {
+  #include <stddef.h>
   #include <linux/i2c-dev.h>
   #include <byteswap.h>
   #include <endian.h>
