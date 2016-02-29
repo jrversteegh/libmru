@@ -71,6 +71,13 @@ struct HMC5843: public Chip {
   HMC5843(I2CBus& bus): Chip(bus, compass_address, false) {}
 };
 
+struct HMC5883: public Chip {
+  virtual void initialize();
+  virtual void poll();
+  virtual void finalize();
+  HMC5883(I2CBus& bus): Chip(bus, compass_address, false) {}
+};
+
 struct ADXL345: public Chip {
   virtual void initialize();
   virtual void poll();
@@ -78,6 +85,12 @@ struct ADXL345: public Chip {
   ADXL345(I2CBus& bus): Chip(bus, acceleration_address, true) {}
 };
 
+struct BMA180: public Chip {
+  virtual void initialize();
+  virtual void poll();
+  virtual void finalize();
+  BMA180(I2CBus& bus): Chip(bus, bma180_address, false) {}
+};
 
 struct ITG3200: public Chip {
   virtual void initialize();
@@ -85,6 +98,21 @@ struct ITG3200: public Chip {
   virtual void finalize();
   ITG3200(I2CBus& bus): Chip(bus, gyro_address, false) {}
   const Value_t temp() const { return data().value; }
+};
+
+struct ITG3205: public Chip {
+  virtual void initialize();
+  virtual void poll();
+  virtual void finalize();
+  ITG3205(I2CBus& bus): Chip(bus, itg3205_address, false) {}
+  const Value_t temp() const { return data().value; }
+};
+
+struct BMP085: public Chip {
+  virtual void initialize();
+  virtual void poll();
+  virtual void finalize();
+  BMP085(I2CBus& bus): Chip(bus, bmp085_address, false) {}
 };
 
 } //namespace ninedof
