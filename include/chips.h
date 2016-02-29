@@ -27,9 +27,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace ninedof {
 
-extern const int compass_address;
-extern const int acceleration_address;
-extern const int gyro_address;
+extern const int hmc5843_address;
+extern const int hmc5883_address;
+extern const int adxl345_address;
+extern const int bma180_address;
+extern const int itg3200_address;
+extern const int itg3205_address;
+extern const int bmp085_address;
 
 struct Chip {
   virtual void initialize() = 0;
@@ -68,27 +72,28 @@ struct HMC5843: public Chip {
   virtual void initialize();
   virtual void poll();
   virtual void finalize();
-  HMC5843(I2CBus& bus): Chip(bus, compass_address, false) {}
+  HMC5843(I2CBus& bus, const int address): Chip(bus, address, false) {}
+  HMC5843(I2CBus& bus): Chip(bus, hmc5843_address, false) {}
 };
 
-struct HMC5883: public Chip {
-  virtual void initialize();
-  virtual void poll();
-  virtual void finalize();
-  HMC5883(I2CBus& bus): Chip(bus, compass_address, false) {}
+struct HMC5883: public HMC5843 {
+  HMC5883(I2CBus& bus, const int address): HMC5843(bus, address) {}
+  HMC5883(I2CBus& bus): HMC5843(bus, hmc5883_address) {}
 };
 
 struct ADXL345: public Chip {
   virtual void initialize();
   virtual void poll();
   virtual void finalize();
-  ADXL345(I2CBus& bus): Chip(bus, acceleration_address, true) {}
+  ADXL345(I2CBus& bus, const int address): Chip(bus, address, true) {}
+  ADXL345(I2CBus& bus): Chip(bus, adxl345_address, true) {}
 };
 
 struct BMA180: public Chip {
   virtual void initialize();
   virtual void poll();
   virtual void finalize();
+  BMA180(I2CBus& bus, const int address): Chip(bus, address, false) {}
   BMA180(I2CBus& bus): Chip(bus, bma180_address, false) {}
 };
 
@@ -96,15 +101,14 @@ struct ITG3200: public Chip {
   virtual void initialize();
   virtual void poll();
   virtual void finalize();
-  ITG3200(I2CBus& bus): Chip(bus, gyro_address, false) {}
+  ITG3200(I2CBus& bus, const int address): Chip(bus, address, false) {}
+  ITG3200(I2CBus& bus): Chip(bus, itg3200_address, false) {}
   const Value_t temp() const { return data().value; }
 };
 
-struct ITG3205: public Chip {
-  virtual void initialize();
-  virtual void poll();
-  virtual void finalize();
-  ITG3205(I2CBus& bus): Chip(bus, itg3205_address, false) {}
+struct ITG3205: public ITG3200 {
+  ITG3205(I2CBus& bus, const int address): ITG3200(bus, address) {}
+  ITG3205(I2CBus& bus): ITG3200(bus, itg3205_address) {}
   const Value_t temp() const { return data().value; }
 };
 
@@ -112,6 +116,7 @@ struct BMP085: public Chip {
   virtual void initialize();
   virtual void poll();
   virtual void finalize();
+  BMP085(I2CBus& bus, const int address): Chip(bus, address, false) {}
   BMP085(I2CBus& bus): Chip(bus, bmp085_address, false) {}
 };
 

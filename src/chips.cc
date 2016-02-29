@@ -26,9 +26,43 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace ninedof {
 
-const int compass_address = 0x1e;
-const int acceleration_address = 0x53;
-const int gyro_address = 0x68;
+const int hmc5843_address = 0x1E;
+const int hmc5883_address = 0x1E;
+const int adxl345_address = 0x53;
+const int hma180_address = 0x40;  // alternative 0x41
+const int itg3200_address = 0x68;
+const int itg3205_address = 0x68; // alternative 0x69: pin 9 high
+const int hmp085_address = 0x77;
+
+void HMC5843::initialize()
+{
+  // 20Hz output, no bias
+  device().write_byte(0x00, 0x14);
+  // 1 Gauss range
+  device().write_byte(0x01, 0x20);
+  // Continuous data aquisition
+  device().write_byte(0x02, 0x00);
+}
+
+void HMC5843::poll()
+{
+  //Byte ready = device().read_byte(0x09) & 0x01;
+  //if (ready) {
+  Words words = device().read_words(0x03, 3);
+  Sample_t sample = Sample_t(Vector_t(
+      static_cast<Value_t>(static_cast<int16_t>(words[1])) * comp_x_fact + comp_x_offs,
+      static_cast<Value_t>(static_cast<int16_t>(words[0])) * comp_y_fact + comp_y_offs,
+      static_cast<Value_t>(static_cast<int16_t>(words[2])) * comp_z_fact + comp_z_offs
+  ));
+  push_sample(sample);
+  //}
+}
+
+void HMC5843::finalize()
+{
+  // Put device to sleep
+  device().write_byte(0x02, 0x03);
+}
 
 void ADXL345::initialize()
 {
@@ -61,36 +95,18 @@ void ADXL345::finalize()
   device().write_byte(0x2D, 0x07);
 }
 
-void HMC5843::initialize()
+void BMA180::initialize()
 {
-  // 20Hz output, no bias
-  device().write_byte(0x00, 0x14);
-  // 1 Gauss range
-  device().write_byte(0x01, 0x20);
-  // Continuous data aquisition
-  device().write_byte(0x02, 0x00);
-
 }
 
-void HMC5843::poll()
+void BMA180::poll()
 {
-  //Byte ready = device().read_byte(0x09) & 0x01;
-  //if (ready) {
-  Words words = device().read_words(0x03, 3);
-  Sample_t sample = Sample_t(Vector_t(
-      static_cast<Value_t>(static_cast<int16_t>(words[1])) * comp_x_fact + comp_x_offs,
-      static_cast<Value_t>(static_cast<int16_t>(words[0])) * comp_y_fact + comp_y_offs,
-      static_cast<Value_t>(static_cast<int16_t>(words[2])) * comp_z_fact + comp_z_offs
-  ));
-  push_sample(sample);
-  //}
 }
 
-void HMC5843::finalize()
+void BMA180::finalize()
 {
-  // Put device to sleep
-  device().write_byte(0x02, 0x03);
 }
+
 
 void ITG3200::initialize()
 {
@@ -124,6 +140,20 @@ void ITG3200::finalize()
   device().write_byte(0x3E, 0x40);
 }
 
+
+void BMP085::initialize()
+{
+}
+
+void BMP085::poll()
+{
+}
+
+void BMP085::finalize()
+{
+}
+
 }  // namespace ninedof
+
 
 /* vim: set sw=2 ts=2 et: */
