@@ -6,6 +6,7 @@ SOURCES := $(wildcard src/*.cc)
 TARGET_SOURCE := src/$(TARGET).cpp
 TARGET_OBJ := src/$(TARGET).o
 HEADERS := $(wildcard include/*.h)
+DEFINES := -DCGAL_NDEBUG
 OBJS := $(patsubst %.cc, %.o, $(SOURCES))
 TEST_SOURCES := $(wildcard src/test/*.cpp)
 TEST_TARGETS := $(patsubst %.cpp, %.run, $(TEST_SOURCES))
@@ -14,11 +15,11 @@ TEST_RUN := $(patsubst %.run, %, $(TEST_TARGETS))
 
 all: $(TARGET)
 	
-%.o: %.cc $(HEADERS)
-	g++ -c $(CFLAGS)  -o $@ $<
+%.o: %.cc $(HEADERS) Makefile
+	g++ -c $(CFLAGS) $(DEFINES) -o $@ $<
 
-%.o: %.cpp $(HEADERS)
-	g++ -c $(CFLAGS)  -o $@ $<
+%.o: %.cpp $(HEADERS) Makefile
+	g++ -c $(CFLAGS) $(DEFINES) -o $@ $<
 
 $(TARGET): $(OBJS) $(TARGET_OBJ)
 	g++ $(CFLAGS) $(LIBS) -o $@ $(OBJS) $(TARGET_OBJ)
@@ -30,7 +31,7 @@ timeit: $(TARGET)
 	time ./$(TARGET)
 
 clean:
-	rm -f $(TARGET) $(TEST_TARGETS)
+	rm -f $(TARGET) $(TEST_TARGETS) $(OBJS)
 
 test_%.run: test_%.cpp $(OBJS) 
 	g++ -Wall $(CFLAGS) -std=c++0x -lcppunit $(LIBS) -o $@ $< $(OBJS)
