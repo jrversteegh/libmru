@@ -31,7 +31,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace ninedof {
 
-
 typedef boost::posix_time::ptime Time_t;
 inline Time_t utc_now() {
   return boost::posix_time::microsec_clock::universal_time();

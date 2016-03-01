@@ -41,8 +41,11 @@ struct Chip {
   virtual void finalize() = 0;
   const Sample_t& data() const { return data_; }
   const Samples_t& history() const { return history_; }
+  int chip_id() { return chip_id_; }
+  int chip_version() { return chip_version_; }
   Chip(I2CBus& bus, const int address, bool little_endian): 
-      device_(bus, address, little_endian), data_(), history_() {}
+      device_(bus, address, little_endian), data_(), history_(),
+      chip_id_(0), chip_version_(0) {}
 protected:
   Chip& push_sample(const Sample_t& sample) {
     history_.push_back(sample);
@@ -56,11 +59,15 @@ protected:
     trim_history();
     return *this;
   }
+  void set_chip_id(const int value) { chip_id_ = value; }
+  void set_chip_verion(const int value) { chip_version_ = value; }
   I2CDevice& device() { return device_; }
 private:
   I2CDevice device_;
   Sample_t data_;
   Samples_t history_;
+  int chip_id_;
+  int chip_version_;
   void trim_history() {
     while (history_.size() > history_item_count) {
       history_.pop_front();
@@ -93,8 +100,8 @@ struct BMA180: public Chip {
   virtual void initialize();
   virtual void poll();
   virtual void finalize();
-  BMA180(I2CBus& bus, const int address): Chip(bus, address, false) {}
-  BMA180(I2CBus& bus): Chip(bus, bma180_address, false) {}
+  BMA180(I2CBus& bus, const int address): Chip(bus, address, true) {}
+  BMA180(I2CBus& bus): Chip(bus, bma180_address, true) {}
 };
 
 struct ITG3200: public Chip {
@@ -116,8 +123,27 @@ struct BMP085: public Chip {
   virtual void initialize();
   virtual void poll();
   virtual void finalize();
-  BMP085(I2CBus& bus, const int address): Chip(bus, address, false) {}
-  BMP085(I2CBus& bus): Chip(bus, bmp085_address, false) {}
+  BMP085(I2CBus& bus, const int address): Chip(bus, address, false), loop_count_(0) {}
+  BMP085(I2CBus& bus): Chip(bus, bmp085_address, false), loop_count_(0) {}
+protected:
+  int32_t eval_temp(const Word raw_temp);
+  int32_t eval_pressure(const int32_t raw_pressure);
+private:
+  // Calibration parameters
+  int16_t ac1_;
+  int16_t ac2_;
+  int16_t ac3_;
+  uint16_t ac4_;
+  uint16_t ac5_;
+  uint16_t ac6_;
+  int16_t b1_;
+  int16_t b2_;
+  int16_t mb_;
+  int16_t mc_;
+  int16_t md_;
+  // State machine position indicator
+  int loop_count_;
+  int32_t temp_;
 };
 
 } //namespace ninedof

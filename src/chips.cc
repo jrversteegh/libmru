@@ -97,14 +97,36 @@ void ADXL345::finalize()
 
 void BMA180::initialize()
 {
+  // Get chip information
+  set_chip_id(device().read_byte(0x00));
+  set_chip_version(device().read_byte(0x01));
+
+  // Disable wake up mode (bit 0): never sleep
+  device().write_byte(0x0D, 0x01);
+  // Put in ultra low noise mode
+  device().write_byte(0x30, 0x01);
+  // Set range to -2/+2g: 0.25mg/bit
+  device().write_byte(0x35, 0x04);
+  // set filter range to 20Hz (defaults to 1200Hz)
+  device().write_byte(0x20, 0x10);
 }
 
 void BMA180::poll()
 {
+  Words xyz = device().read_words(0x02, 3);
+  Byte temp = device().read_byte(0x08h);
+  Sample_t sample = Sample_t(Vector_t(
+      static_cast<Value_t>(static_cast<int16_t>(xyz[0] >> 2)) * accel_x_fact + accel_x_offs,
+      static_cast<Value_t>(static_cast<int16_t>(xyz[1] >> 2)) * accel_y_fact + accel_y_offs,
+      static_cast<Value_t>(static_cast<int16_t>(xyz[2] >> 2)) * accel_z_fact + accel_z_offs 
+  ), static_cast<Value_t>(static_cast<int8_t>(temp)) * gyro_temp_fact + gyro_temp_offs);
+  push_sample(sample);
 }
 
 void BMA180::finalize()
 {
+  // Put the device to sleep
+  device().write_byte(0x0D, 0x02);
 }
 
 
@@ -143,13 +165,60 @@ void ITG3200::finalize()
 
 void BMP085::initialize()
 {
+  // Read calibration data from EEPROM
+  Words words = device().read_words(0xAA, 11);
+  int16_t ac1_ = static_cast<int16_t>words[0];
+  int16_t ac2_ = static_cast<int16_t>words[1];
+  int16_t ac3_ = static_cast<int16_t>words[2];
+  uint16_t ac4_ = static_cast<uint16_t>words[3];
+  uint16_t ac5_ = static_cast<uint16_t>words[4];
+  uint16_t ac6_ = static_cast<uint16_t>words[5];
+  int16_t b1_ = static_cast<int16_t>words[6];
+  int16_t b2_ = static_cast<int16_t>words[7];
+  int16_t mb_ = static_cast<int16_t>words[8];
+  int16_t mc_ = static_cast<int16_t>words[9];
+  int16_t md_ = static_cast<int16_t>words[10];
 }
 
 void BMP085::poll()
 {
+  if (loop_counter_ % 120 == 0) {
+    loop_counter_ = 0;
+    // Get temperature
+    device().write_byte(0xF4, 0x2E);
+  } else if (loop_counter_ == 1) {
+    // Read temperature
+    Byte raw_temp = device().read_byte(0xF6);
+    _temp = eval_temp(raw_temp);
+  } else if (loop_counter_ % 2 = 0) {
+    // Read pressure 8 times oversampling: takes 25ms
+    device().write_byte(0xF4, 0xF4)
+  } else {
+    Word raw_pressure = device().read_word(0xF6);
+    int32_t pressure = eval_pressure(raw_pressure);
+    Sample_t sample = Sample_t(Vector_t(
+        static_cast<Value_t>(pressure) * pressure_fact + pressure_offs, 0, 0), 
+        static_cast<Value_t>(temp_) * temp_fact + temp_offs); 
+    push_sample(sample);
+  }
+  loop_counter_++;
 }
 
 void BMP085::finalize()
+{
+}
+
+int32_t BMP085::eval_temp(const Word raw_temp)
+{
+  int32_t result = static_cast<int32_t>(raw_temp);
+  int32_t x1 = ((result - ac6_) * ac5_) >>  15;
+  int32_t x2 = (static_cast<int32_t>(mc_) << 11) / (x1 + md_);
+  int32_t b5 = x1 + x2;
+  result = (b5 + 8) >> 4;
+  return result;
+}
+
+int32_t BMP085::eval_pressure(const int32_t raw_pressure)
 {
 }
 
