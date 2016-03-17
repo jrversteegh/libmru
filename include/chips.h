@@ -138,6 +138,7 @@ private:
   uint16_t ac6_;
   int16_t b1_;
   int16_t b2_;
+  int32_t b5_;
   int16_t mb_;
   int16_t mc_;
   int16_t md_;

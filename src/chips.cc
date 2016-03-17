@@ -167,17 +167,17 @@ void BMP085::initialize()
 {
   // Read calibration data from EEPROM
   Words words = device().read_words(0xAA, 11);
-  int16_t ac1_ = static_cast<int16_t>words[0];
-  int16_t ac2_ = static_cast<int16_t>words[1];
-  int16_t ac3_ = static_cast<int16_t>words[2];
-  uint16_t ac4_ = static_cast<uint16_t>words[3];
-  uint16_t ac5_ = static_cast<uint16_t>words[4];
-  uint16_t ac6_ = static_cast<uint16_t>words[5];
-  int16_t b1_ = static_cast<int16_t>words[6];
-  int16_t b2_ = static_cast<int16_t>words[7];
-  int16_t mb_ = static_cast<int16_t>words[8];
-  int16_t mc_ = static_cast<int16_t>words[9];
-  int16_t md_ = static_cast<int16_t>words[10];
+  ac1_ = static_cast<int16_t>words[0];
+  ac2_ = static_cast<int16_t>words[1];
+  ac3_ = static_cast<int16_t>words[2];
+  ac4_ = static_cast<uint16_t>words[3];
+  ac5_ = static_cast<uint16_t>words[4];
+  ac6_ = static_cast<uint16_t>words[5];
+  b1_ = static_cast<int16_t>words[6];
+  b2_ = static_cast<int16_t>words[7];
+  mb_ = static_cast<int16_t>words[8];
+  mc_ = static_cast<int16_t>words[9];
+  md_ = static_cast<int16_t>words[10];
 }
 
 void BMP085::poll()
@@ -213,13 +213,35 @@ int32_t BMP085::eval_temp(const Word raw_temp)
   int32_t result = static_cast<int32_t>(raw_temp);
   int32_t x1 = ((result - ac6_) * ac5_) >>  15;
   int32_t x2 = (static_cast<int32_t>(mc_) << 11) / (x1 + md_);
-  int32_t b5 = x1 + x2;
-  result = (b5 + 8) >> 4;
+  b5_ = x1 + x2;
+  result = (b5_ + 8) >> 4;
   return result;
 }
 
 int32_t BMP085::eval_pressure(const int32_t raw_pressure)
 {
+  int32_t result = 0;
+  int32_t b6 = b5_ - 4000;
+  int32_t x1 = (b2_ * ((b6 * b6) >> 12) >> 11;
+  int32_t x2 = (ac2_ * b6) >> 11
+  int32_t x3 = x1 + x2;
+  int32_t b3 = ((ac1_ * 4 + x3) << 3 + 2) / 4;
+  x1 = (ac3_ * b6) >> 13;
+  x2 = (b1_ * ((b6 * b6) >> 12)) >> 16;
+  x3 = ((x1 + x2) + 2) / 4;
+  int32_t b4 = ac4_ * (uint32_t)(x3 + 32768) >> 15;
+  int32_t b7 = (uint32_t)raw_pressure - b3 * (50000 >> 3)
+  if (b7 < 0x80000000) {
+    result = (b7 * 2) / b4;
+  } 
+  else {
+    result = (b7 / b4) * 2;
+  }
+  x1 = (result >> 8) * (result >> 8);
+  x1 = (x1 * 3038) >> 16;
+  x2 = (-7357 * result) >> 16;
+  result = result + (x1 + x2 + 3791) >> 4;
+  return result;
 }
 
 }  // namespace ninedof
