@@ -60,7 +60,7 @@ protected:
     return *this;
   }
   void set_chip_id(const int value) { chip_id_ = value; }
-  void set_chip_verion(const int value) { chip_version_ = value; }
+  void set_chip_version(const int value) { chip_version_ = value; }
   I2CDevice& device() { return device_; }
 private:
   I2CDevice device_;
@@ -145,6 +145,9 @@ private:
   // State machine position indicator
   int loop_count_;
   int32_t temp_;
+#ifdef UNITTEST
+  friend class BMP085Test;
+#endif
 };
 
 } //namespace ninedof

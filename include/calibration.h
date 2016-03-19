@@ -44,6 +44,11 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define gyro_temp_fact ( 0.003571)
 #define gyro_temp_offs ( 81.0 )
 
+#define pressure_fact ( 1.0)
+#define pressure_offs ( 0.0)
+#define temp_fact ( 1.0)
+#define temp_offs ( 0.0)
+
 #define history_item_count (100000)
 
 #endif

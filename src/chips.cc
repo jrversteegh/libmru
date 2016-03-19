@@ -114,7 +114,7 @@ void BMA180::initialize()
 void BMA180::poll()
 {
   Words xyz = device().read_words(0x02, 3);
-  Byte temp = device().read_byte(0x08h);
+  Byte temp = device().read_byte(0x08);
   Sample_t sample = Sample_t(Vector_t(
       static_cast<Value_t>(static_cast<int16_t>(xyz[0] >> 2)) * accel_x_fact + accel_x_offs,
       static_cast<Value_t>(static_cast<int16_t>(xyz[1] >> 2)) * accel_y_fact + accel_y_offs,
@@ -167,32 +167,32 @@ void BMP085::initialize()
 {
   // Read calibration data from EEPROM
   Words words = device().read_words(0xAA, 11);
-  ac1_ = static_cast<int16_t>words[0];
-  ac2_ = static_cast<int16_t>words[1];
-  ac3_ = static_cast<int16_t>words[2];
-  ac4_ = static_cast<uint16_t>words[3];
-  ac5_ = static_cast<uint16_t>words[4];
-  ac6_ = static_cast<uint16_t>words[5];
-  b1_ = static_cast<int16_t>words[6];
-  b2_ = static_cast<int16_t>words[7];
-  mb_ = static_cast<int16_t>words[8];
-  mc_ = static_cast<int16_t>words[9];
-  md_ = static_cast<int16_t>words[10];
+  ac1_ = static_cast<int16_t>(words[0]);
+  ac2_ = static_cast<int16_t>(words[1]);
+  ac3_ = static_cast<int16_t>(words[2]);
+  ac4_ = static_cast<uint16_t>(words[3]);
+  ac5_ = static_cast<uint16_t>(words[4]);
+  ac6_ = static_cast<uint16_t>(words[5]);
+  b1_ = static_cast<int16_t>(words[6]);
+  b2_ = static_cast<int16_t>(words[7]);
+  mb_ = static_cast<int16_t>(words[8]);
+  mc_ = static_cast<int16_t>(words[9]);
+  md_ = static_cast<int16_t>(words[10]);
 }
 
 void BMP085::poll()
 {
-  if (loop_counter_ % 120 == 0) {
-    loop_counter_ = 0;
+  if (loop_count_ % 120 == 0) {
+    loop_count_ = 0;
     // Get temperature
     device().write_byte(0xF4, 0x2E);
-  } else if (loop_counter_ == 1) {
+  } else if (loop_count_ == 1) {
     // Read temperature
     Byte raw_temp = device().read_byte(0xF6);
-    _temp = eval_temp(raw_temp);
-  } else if (loop_counter_ % 2 = 0) {
+    raw_temp = eval_temp(raw_temp);
+  } else if (loop_count_ % 2 == 0) {
     // Read pressure 8 times oversampling: takes 25ms
-    device().write_byte(0xF4, 0xF4)
+    device().write_byte(0xF4, 0xF4);
   } else {
     Word raw_pressure = device().read_word(0xF6);
     int32_t pressure = eval_pressure(raw_pressure);
@@ -201,7 +201,7 @@ void BMP085::poll()
         static_cast<Value_t>(temp_) * temp_fact + temp_offs); 
     push_sample(sample);
   }
-  loop_counter_++;
+  loop_count_++;
 }
 
 void BMP085::finalize()
@@ -222,15 +222,15 @@ int32_t BMP085::eval_pressure(const int32_t raw_pressure)
 {
   int32_t result = 0;
   int32_t b6 = b5_ - 4000;
-  int32_t x1 = (b2_ * ((b6 * b6) >> 12) >> 11;
-  int32_t x2 = (ac2_ * b6) >> 11
+  int32_t x1 = (b2_ * ((b6 * b6) >> 12)) >> 11;
+  int32_t x2 = (ac2_ * b6) >> 11;
   int32_t x3 = x1 + x2;
   int32_t b3 = ((ac1_ * 4 + x3) << 3 + 2) / 4;
   x1 = (ac3_ * b6) >> 13;
   x2 = (b1_ * ((b6 * b6) >> 12)) >> 16;
   x3 = ((x1 + x2) + 2) / 4;
   int32_t b4 = ac4_ * (uint32_t)(x3 + 32768) >> 15;
-  int32_t b7 = (uint32_t)raw_pressure - b3 * (50000 >> 3)
+  int32_t b7 = (uint32_t)raw_pressure - b3 * (50000 >> 3);
   if (b7 < 0x80000000) {
     result = (b7 * 2) / b4;
   } 

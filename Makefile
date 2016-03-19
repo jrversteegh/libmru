@@ -1,7 +1,7 @@
 TARGET := ninedof
 LIBS := -lCGAL
 # Rounding math required by CGAL
-CFLAGS := -frounding-math -std=c++0x -march=native -O2
+CFLAGS := -frounding-math -std=c++11 -march=native -O2 -L/home/jaapie/.local/gcc/lib
 SOURCES := $(wildcard src/*.cc)
 TARGET_SOURCE := src/$(TARGET).cpp
 TARGET_OBJ := src/$(TARGET).o
@@ -34,7 +34,8 @@ clean:
 	rm -f $(TARGET) $(TEST_TARGETS) $(OBJS)
 
 test_%.run: test_%.cpp $(OBJS) 
-	g++ -Wall $(CFLAGS) -std=c++0x -lcppunit $(LIBS) -o $@ $< $(OBJS)
+	g++ -Wall $(CFLAGS) -o $@ $< $(OBJS) -lcppunit $(LIBS)
+
 
 .PHONY: $(TEST_RUN) test test_message
 $(TEST_RUN): $(TEST_TARGETS)
@@ -45,7 +46,7 @@ test_message:
 	@echo 'CPPUnit is required for compiling tests.'
 	@echo 'e.g on Debian(like) do: "$$ sudo apt-get install libcppunit-dev"'
 	@echo 'You may also want to specify the I2C bus number for the 9dof stick'
-	@echo 'e.g. "$$ export NINEDOF_BUSNO=1". It defaults to 0'
+	@echo 'e.g. "$$ export NINEDOF_BUSNO=1".' 
 	@echo '*******************************************************************'
 
 test: test_message $(TEST_RUN)
