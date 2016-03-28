@@ -1,7 +1,7 @@
 TARGET := ninedof
 LIBS := -lCGAL
 # Rounding math required by CGAL
-CFLAGS := -frounding-math -std=c++11 -march=native -O2 -L/home/jaapie/.local/gcc/lib
+CFLAGS := -frounding-math -std=c++11 -O2 
 SOURCES := $(wildcard src/*.cc)
 TARGET_SOURCE := src/$(TARGET).cpp
 TARGET_OBJ := src/$(TARGET).o
@@ -16,13 +16,13 @@ TEST_RUN := $(patsubst %.run, %, $(TEST_TARGETS))
 all: $(TARGET)
 	
 %.o: %.cc $(HEADERS) Makefile
-	g++ -c $(CFLAGS) $(DEFINES) -o $@ $<
+	g++ -c $(CFLAGS) $(DEFINES) -o $@ $< 
 
 %.o: %.cpp $(HEADERS) Makefile
 	g++ -c $(CFLAGS) $(DEFINES) -o $@ $<
 
 $(TARGET): $(OBJS) $(TARGET_OBJ)
-	g++ $(CFLAGS) $(LIBS) -o $@ $(OBJS) $(TARGET_OBJ)
+	g++ $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(TARGET_OBJ) 
 
 run: $(TARGET)
 	./$(TARGET)
@@ -34,7 +34,7 @@ clean:
 	rm -f $(TARGET) $(TEST_TARGETS) $(OBJS)
 
 test_%.run: test_%.cpp $(OBJS) 
-	g++ -Wall $(CFLAGS) -o $@ $< $(OBJS) -lcppunit $(LIBS)
+	g++ $(CFLAGS) -o $@ $< $(OBJS) $(LIBS) -lcppunit
 
 
 .PHONY: $(TEST_RUN) test test_message
