@@ -13,6 +13,13 @@
 
 using namespace ninedof;
 
+struct I2CBusMock: public I2CBus {
+  I2CBusMock(): I2CBus(-1) {
+  }
+  ~I2CBusMock() {
+  }
+};
+
 class ADXL345Test: public CppUnit::TestFixture {
   void test_dummy() {
   }
@@ -23,7 +30,18 @@ public:
 };
 
 class BMP085Test : public CppUnit::TestFixture {
+  I2CBus* bus;
+  BMP085* ps;
   void test_evaluation() {
+  }
+public:
+  virtual void setUp() {
+    bus = new I2CBusMock();
+    ps = new BMP085(*bus);
+  }
+  virtual void tearDown() {
+    delete ps;
+    delete bus;
   }
 public:
   CPPUNIT_TEST_SUITE(BMP085Test);

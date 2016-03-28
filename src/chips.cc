@@ -32,9 +32,9 @@ const int adxl345_address = 0x53;
 const int hma180_address = 0x40;  // alternative 0x41
 const int itg3200_address = 0x68;
 const int itg3205_address = 0x68; // alternative 0x69: pin 9 high
-const int hmp085_address = 0x77;
+const int bmp085_address = 0x77;
 
-void HMC5843::initialize()
+void HMC5843<>::initialize()
 {
   // 20Hz output, no bias
   device().write_byte(0x00, 0x14);
@@ -58,13 +58,13 @@ void HMC5843::poll()
   //}
 }
 
-void HMC5843::finalize()
+void HMC5843<Device>::finalize()
 {
   // Put device to sleep
   device().write_byte(0x02, 0x03);
 }
 
-void ADXL345::initialize()
+void ADXL345<Device>::initialize()
 {
   // Clear the sleep bit (when it was set)
   device().write_byte(0x2D, 0x00);
@@ -76,7 +76,7 @@ void ADXL345::initialize()
   device().write_byte(0x31, 0x0B);
 }
 
-void ADXL345::poll()
+void ADXL345<Device>::poll()
 {
   Words words = device().read_words(0x32, 3);
   Sample_t sample = Sample_t(Vector_t(
@@ -87,7 +87,7 @@ void ADXL345::poll()
   push_sample(sample);
 }
 
-void ADXL345::finalize()
+void ADXL345<Device>::finalize()
 {
   // Disable measure bit (set to standby)
   device().write_byte(0x2D, 0x00);
@@ -95,7 +95,7 @@ void ADXL345::finalize()
   device().write_byte(0x2D, 0x07);
 }
 
-void BMA180::initialize()
+void BMA180<Device>::initialize()
 {
   // Get chip information
   set_chip_id(device().read_byte(0x00));
@@ -111,7 +111,7 @@ void BMA180::initialize()
   device().write_byte(0x20, 0x10);
 }
 
-void BMA180::poll()
+void BMA180<Device>::poll()
 {
   Words xyz = device().read_words(0x02, 3);
   Byte temp = device().read_byte(0x08);
@@ -123,14 +123,14 @@ void BMA180::poll()
   push_sample(sample);
 }
 
-void BMA180::finalize()
+void BMA180<Device>::finalize()
 {
   // Put the device to sleep
   device().write_byte(0x0D, 0x02);
 }
 
 
-void ITG3200::initialize()
+void ITG3200<Device>::initialize()
 {
   // First reset the chip
   device().write_byte(0x3E, 0x80);
@@ -144,7 +144,7 @@ void ITG3200::initialize()
   device().write_byte(0x3E, 0x01);
 }
 
-void ITG3200::poll()
+void ITG3200<Device>::poll()
 {
   Words words = device().read_words(0x1B, 4);
   Sample_t sample = Sample_t(Vector_t(
@@ -156,14 +156,14 @@ void ITG3200::poll()
   push_sample(sample);
 }
 
-void ITG3200::finalize()
+void ITG3200<Device>::finalize()
 {
   // Put to sleep and select internal oscillator as clock
   device().write_byte(0x3E, 0x40);
 }
 
 
-void BMP085::initialize()
+void BMP085<Device>::initialize()
 {
   // Read calibration data from EEPROM
   Words words = device().read_words(0xAA, 11);
@@ -180,7 +180,7 @@ void BMP085::initialize()
   md_ = static_cast<int16_t>(words[10]);
 }
 
-void BMP085::poll()
+void BMP085<Device>::poll()
 {
   if (loop_count_ % 120 == 0) {
     loop_count_ = 0;
@@ -204,11 +204,11 @@ void BMP085::poll()
   loop_count_++;
 }
 
-void BMP085::finalize()
+void BMP085<Device>::finalize()
 {
 }
 
-int32_t BMP085::eval_temp(const Word raw_temp)
+int32_t BMP085<Device>::eval_temp(const Word raw_temp)
 {
   int32_t result = static_cast<int32_t>(raw_temp);
   int32_t x1 = ((result - ac6_) * ac5_) >>  15;
@@ -218,7 +218,7 @@ int32_t BMP085::eval_temp(const Word raw_temp)
   return result;
 }
 
-int32_t BMP085::eval_pressure(const int32_t raw_pressure)
+int32_t BMP085<Device>::eval_pressure(const int32_t raw_pressure)
 {
   int32_t result = 0;
   int32_t b6 = b5_ - 4000;

@@ -35,6 +35,7 @@ extern const int itg3200_address;
 extern const int itg3205_address;
 extern const int bmp085_address;
 
+template<class Device>
 struct Chip {
   virtual void initialize() = 0;
   virtual void poll() = 0;
@@ -61,9 +62,9 @@ protected:
   }
   void set_chip_id(const int value) { chip_id_ = value; }
   void set_chip_version(const int value) { chip_version_ = value; }
-  I2CDevice& device() { return device_; }
+  Device& device() { return device_; }
 private:
-  I2CDevice device_;
+  Device device_;
   Sample_t data_;
   Samples_t history_;
   int chip_id_;
@@ -75,56 +76,62 @@ private:
   }
 };
 
-struct HMC5843: public Chip {
+template<class Device>
+struct HMC5843: public Chip<Device> {
   virtual void initialize();
   virtual void poll();
   virtual void finalize();
-  HMC5843(I2CBus& bus, const int address): Chip(bus, address, false) {}
-  HMC5843(I2CBus& bus): Chip(bus, hmc5843_address, false) {}
+  HMC5843(I2CBus& bus, const int address): Chip<Device>(bus, address, false) {}
+  HMC5843(I2CBus& bus): Chip<Device>(bus, hmc5843_address, false) {}
 };
 
-struct HMC5883: public HMC5843 {
-  HMC5883(I2CBus& bus, const int address): HMC5843(bus, address) {}
-  HMC5883(I2CBus& bus): HMC5843(bus, hmc5883_address) {}
+template<class Device>
+struct HMC5883: public HMC5843<Device> {
+  HMC5883(I2CBus& bus, const int address): HMC5843<Device>(bus, address) {}
+  HMC5883(I2CBus& bus): HMC5843<Device>(bus, hmc5883_address) {}
 };
 
-struct ADXL345: public Chip {
+template<class Device>
+struct ADXL345: public Chip<Device> {
   virtual void initialize();
   virtual void poll();
   virtual void finalize();
-  ADXL345(I2CBus& bus, const int address): Chip(bus, address, true) {}
-  ADXL345(I2CBus& bus): Chip(bus, adxl345_address, true) {}
+  ADXL345(I2CBus& bus, const int address): Chip<Device>(bus, address, true) {}
+  ADXL345(I2CBus& bus): Chip<Device>(bus, adxl345_address, true) {}
 };
 
-struct BMA180: public Chip {
+template<class Device>
+struct BMA180: public Chip<Device> {
   virtual void initialize();
   virtual void poll();
   virtual void finalize();
-  BMA180(I2CBus& bus, const int address): Chip(bus, address, true) {}
-  BMA180(I2CBus& bus): Chip(bus, bma180_address, true) {}
+  BMA180(I2CBus& bus, const int address): Chip<Device>(bus, address, true) {}
+  BMA180(I2CBus& bus): Chip<Device>(bus, bma180_address, true) {}
 };
 
-struct ITG3200: public Chip {
+template<class Device>
+struct ITG3200: public Chip<Device> {
   virtual void initialize();
   virtual void poll();
   virtual void finalize();
-  ITG3200(I2CBus& bus, const int address): Chip(bus, address, false) {}
-  ITG3200(I2CBus& bus): Chip(bus, itg3200_address, false) {}
-  const Value_t temp() const { return data().value; }
+  ITG3200(I2CBus& bus, const int address): Chip<Device>(bus, address, false) {}
+  ITG3200(I2CBus& bus): Chip<Device>(bus, itg3200_address, false) {}
+  const Value_t temp() const { return Chip<Device>::data().value; }
 };
 
-struct ITG3205: public ITG3200 {
-  ITG3205(I2CBus& bus, const int address): ITG3200(bus, address) {}
-  ITG3205(I2CBus& bus): ITG3200(bus, itg3205_address) {}
-  const Value_t temp() const { return data().value; }
+template<class Device>
+struct ITG3205: public ITG3200<Device> {
+  ITG3205(I2CBus& bus, const int address): ITG3200<Device>(bus, address) {}
+  ITG3205(I2CBus& bus): ITG3200<Device>(bus, itg3205_address) {}
 };
 
-struct BMP085: public Chip {
+template<class Device>
+struct BMP085: public Chip<Device> {
   virtual void initialize();
   virtual void poll();
   virtual void finalize();
-  BMP085(I2CBus& bus, const int address): Chip(bus, address, false), loop_count_(0) {}
-  BMP085(I2CBus& bus): Chip(bus, bmp085_address, false), loop_count_(0) {}
+  BMP085(I2CBus& bus, const int address): Chip<Device>(bus, address, false), loop_count_(0) {}
+  BMP085(I2CBus& bus): Chip<Device>(bus, bmp085_address, false), loop_count_(0) {}
 protected:
   int32_t eval_temp(const Word raw_temp);
   int32_t eval_pressure(const int32_t raw_pressure);
