@@ -61,7 +61,7 @@ typedef BusRefs::iterator BusRef_i;
 
 static BusRefs busrefs;
 
-void I2CBus::open_bus_()
+void I2C_bus::open_bus_()
 {
   BusRef_i i = busrefs.find(busno_);
   if (i != busrefs.end()) {
@@ -78,7 +78,7 @@ void I2CBus::open_bus_()
   }
 }
 
-void I2CBus::close_bus_()
+void I2C_bus::close_bus_()
 {
   BusRef_i i = busrefs.find(busno_);
   if (i != busrefs.end()) {
@@ -90,7 +90,7 @@ void I2CBus::close_bus_()
   } 
 }
 
-void I2CBus::select_address(const int address)
+void I2C_bus::select_address(const int address)
 {
   BusRef_i i = busrefs.find(busno_);
   if (i != busrefs.end()) {
@@ -106,7 +106,7 @@ void I2CBus::select_address(const int address)
   }
 }
 
-const int I2CBus::get_selected_address() const
+const int I2C_bus::get_selected_address() const
 {
   BusRef_i i = busrefs.find(busno_);
   if (i != busrefs.end()) {
@@ -116,7 +116,7 @@ const int I2CBus::get_selected_address() const
   }
 }
 
-Ints I2CBus::scan() {
+Ints I2C_bus::scan() {
   Ints result;
   for (int i = 1; i < 256; ++i) {
     try {
@@ -131,7 +131,7 @@ Ints I2CBus::scan() {
   return result;
 }
 
-void I2CDevice::write_byte(const int offset, const Byte value) const
+void I2C_device::write_byte(const int offset, const Byte value) const
 {
   select_();
   __s32 result = i2c_smbus_write_byte_data(bus_.get_file(), offset, value);
@@ -140,7 +140,7 @@ void I2CDevice::write_byte(const int offset, const Byte value) const
   }
 }	
 
-void I2CDevice::write_bytes(const int offset, const Bytes& values) const
+void I2C_device::write_bytes(const int offset, const Bytes& values) const
 {
   select_();
   __s32 result = i2c_smbus_write_i2c_block_data(bus_.get_file(), offset, values.size(), values.data());
@@ -149,7 +149,7 @@ void I2CDevice::write_bytes(const int offset, const Bytes& values) const
   }
 }	
 
-Byte I2CDevice::read_byte(const int offset) const
+Byte I2C_device::read_byte(const int offset) const
 {
   select_();
   __s32 result = i2c_smbus_read_byte_data(bus_.get_file(), offset);
@@ -159,7 +159,7 @@ Byte I2CDevice::read_byte(const int offset) const
   return 0xFF & result;
 }	
 
-Bytes I2CDevice::read_bytes(const int offset, const int count) const
+Bytes I2C_device::read_bytes(const int offset, const int count) const
 {
   select_();
   Bytes bytes(count);
@@ -170,7 +170,7 @@ Bytes I2CDevice::read_bytes(const int offset, const int count) const
   return bytes;
 }	
 
-void I2CDevice::write_word(const int offset, const Word value) const
+void I2C_device::write_word(const int offset, const Word value) const
 {
   select_();
   Word word = value;
@@ -183,7 +183,7 @@ void I2CDevice::write_word(const int offset, const Word value) const
   }
 }	
 
-void I2CDevice::write_words(const int offset, const Words& values) const
+void I2C_device::write_words(const int offset, const Words& values) const
 {
   select_();
   Words words(values);
@@ -201,7 +201,7 @@ void I2CDevice::write_words(const int offset, const Words& values) const
   }
 }	
 
-Word I2CDevice::read_word(const int offset) const
+Word I2C_device::read_word(const int offset) const
 {
   select_();
   __s32 result = i2c_smbus_read_word_data(bus_.get_file(), offset);
@@ -214,7 +214,7 @@ Word I2CDevice::read_word(const int offset) const
   return word; 
 }	
 
-Words I2CDevice::read_words(const int offset, const int count) const
+Words I2C_device::read_words(const int offset, const int count) const
 {
   select_();
   Words words(count);

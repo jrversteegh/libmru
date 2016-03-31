@@ -46,7 +46,7 @@ int main()
     busno = atoi(i2c_bus);
   }
   try {
-    I2CBus bus(busno);
+    I2C_bus bus(busno);
 
     HMC5843 compass(bus);
     ADXL345 acceleration(bus);
@@ -86,7 +86,9 @@ int main()
     cout << "Finalized." << endl;
     return 0;
   } catch (const Error& e) {
+    cerr << "=========================" << endl;
     cerr << e.get_message() << endl;
+    cerr << "=========================" << endl;
     return 1;
   }
 }

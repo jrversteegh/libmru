@@ -37,14 +37,14 @@ typedef Bytes::iterator Byte_i;
 typedef Words::iterator Word_i;
 typedef Ints::iterator Int_i ;
 
-struct I2CBus {
-  I2CBus(int busno): file_(0), busno_(busno) {
+struct I2C_bus {
+  I2C_bus(int busno): file_(0), busno_(busno) {
     open_bus_();
   }
-  I2CBus(const I2CBus& bus): file_(bus.file_), busno_(bus.busno_) {
+  I2C_bus(const I2C_bus& bus): file_(bus.file_), busno_(bus.busno_) {
     open_bus_();
   }
-  ~I2CBus() {
+  ~I2C_bus() {
     close_bus_();
   }
   const int get_selected_address() const;
@@ -59,10 +59,11 @@ private:
   void close_bus_();
 };
 
-struct I2CDevice {
-  I2CDevice(I2CBus& bus, int address, bool little_endian=true): 
+struct I2C_device {
+  typedef I2C_bus Bus_type;
+  I2C_device(Bus_type& bus, int address, bool little_endian=true): 
       bus_(bus), address_(address), little_endian_(little_endian) {}
-  I2CDevice(const I2CDevice& device): 
+  I2C_device(const I2C_device& device): 
       bus_(device.bus_), address_(device.address_), little_endian_(device.little_endian_) {}
   void write_byte(const int offset, const Byte value) const;
   void write_bytes(const int offset, const Bytes& values) const;
@@ -73,7 +74,7 @@ struct I2CDevice {
   Word read_word(const int offset) const;
   Words read_words(const int offset, const int count) const;
 private:
-  I2CBus& bus_;
+  Bus_type& bus_;
   int address_;
   bool little_endian_;
   void select_() const {

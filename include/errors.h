@@ -28,8 +28,8 @@ namespace ninedof {
 struct Error { 
   Error(const std::string message, int error = 0): message_(message), error_(error) {}; 
   std::string get_message() const { 
-    std::ostringstream os(message_);
-    os << " Error: " << error_; 
+    std::ostringstream os;
+    os << message_ << " Error: " << error_; 
     return os.str();
   }
 private: 

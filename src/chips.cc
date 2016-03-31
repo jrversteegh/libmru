@@ -21,8 +21,6 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "../include/chips.h"
 #include "../include/calibration.h"
 
-#include <chrono>
-#include <thread>
 
 namespace ninedof {
 
@@ -36,7 +34,7 @@ const int bmp085_address = 0x77;
 
 
 template <class Device>
-void BMP085<Device>::set_calibration_data(const Words& calibration_data)
+void BMP085T<Device>::set_calibration_data(const Words& calibration_data)
 {
   ac1_ = static_cast<int16_t>(calibration_data[0]);
   ac2_ = static_cast<int16_t>(calibration_data[1]);
@@ -52,7 +50,7 @@ void BMP085<Device>::set_calibration_data(const Words& calibration_data)
 }
 
 template <class Device>
-int32_t BMP085<Device>::eval_temp(const Word raw_temp)
+int32_t BMP085T<Device>::eval_temp(const Word raw_temp)
 {
   int32_t result = static_cast<int32_t>(raw_temp);
   int32_t x1 = ((result - ac6_) * ac5_) >>  15;
@@ -63,7 +61,7 @@ int32_t BMP085<Device>::eval_temp(const Word raw_temp)
 }
 
 template <class Device>
-int32_t BMP085<Device>::eval_pressure(const int32_t raw_pressure)
+int32_t BMP085T<Device>::eval_pressure(const int32_t raw_pressure)
 {
   int32_t result = 0;
   int32_t b6 = b5_ - 4000;
