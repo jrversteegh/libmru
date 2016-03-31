@@ -36,6 +36,9 @@ typedef std::vector<int> Ints;
 typedef Bytes::iterator Byte_i;
 typedef Words::iterator Word_i;
 typedef Ints::iterator Int_i ;
+typedef Bytes::const_iterator Byte_ci;
+typedef Words::const_iterator Word_ci;
+typedef Ints::const_iterator Int_ci ;
 
 struct I2C_bus {
   I2C_bus(int busno): file_(0), busno_(busno) {

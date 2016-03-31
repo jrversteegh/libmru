@@ -17,11 +17,11 @@ int busno = 0;
 
 class I2CBusTest: public CppUnit::TestFixture {
   void testCreateBus() {
-    CPPUNIT_ASSERT_NO_THROW(I2CBus bus(busno));
-    CPPUNIT_ASSERT_THROW(I2CBus bus(999), Error);
+    CPPUNIT_ASSERT_NO_THROW(I2C_bus bus(busno));
+    CPPUNIT_ASSERT_THROW(I2C_bus bus(999), Error);
   }
   void testScanBus() {
-    I2CBus bus(busno);
+    I2C_bus bus(busno);
     Ints addrs = bus.scan();
     CPPUNIT_ASSERT_EQUAL(3, (int)addrs.size());
     CPPUNIT_ASSERT_EQUAL(hmc5883_address, addrs[0]);
@@ -31,8 +31,8 @@ class I2CBusTest: public CppUnit::TestFixture {
   void testDeviceRead() {
     // This test may fail when the sensor values changes between reads
     const int regaddr = 0x2C;
-    I2CBus bus(busno);
-    I2CDevice device(bus, adxl345_address);
+    I2C_bus bus(busno);
+    I2C_device device(bus, adxl345_address);
     Byte b = device.read_byte(regaddr);
     Word w = device.read_word(regaddr);
     Words ws = device.read_words(regaddr, 2);
@@ -44,7 +44,7 @@ class I2CBusTest: public CppUnit::TestFixture {
     CPPUNIT_ASSERT_EQUAL((int)bs[2], ((int)ws[1] & 0xFF));
     CPPUNIT_ASSERT_EQUAL((int)bs[3], ((int)ws[1] >> 8));
     // Test big endian word reading
-    I2CDevice device2 = I2CDevice(bus, adxl345_address, false);
+    I2C_device device2 = I2C_device(bus, adxl345_address, false);
     w = device2.read_word(regaddr);
     ws = device2.read_words(regaddr, 2);
     // This is somewhat arbitrary: we demand the bytes are different so
@@ -55,8 +55,8 @@ class I2CBusTest: public CppUnit::TestFixture {
     CPPUNIT_ASSERT_EQUAL((int)bs[1], ((int)ws[0] & 0xFF));
   }
   void testDeviceWrite() {
-    I2CBus bus(busno);
-    I2CDevice device(bus, adxl345_address);
+    I2C_bus bus(busno);
+    I2C_device device(bus, adxl345_address);
     Bytes bs;
     bs.push_back(0x08);
     bs.push_back(0x80);
@@ -66,7 +66,7 @@ class I2CBusTest: public CppUnit::TestFixture {
     device.write_word(0x2D, 0x9008);
     b = device.read_byte(0x2E);
     CPPUNIT_ASSERT_EQUAL(0x90, (int)b);
-    I2CDevice device2(bus, adxl345_address, false);
+    I2C_device device2(bus, adxl345_address, false);
     Words ws;
     ws.push_back(0x0880);
     device2.write_words(0x2D, ws);
