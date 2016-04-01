@@ -23,8 +23,8 @@ all: $(TARGETS)
 %: src/%.cpp Makefile $(OBJS) 
 	g++ $(CFLAGS) $(DEFINES) -o $@ $(OBJS) $(LIBS) $< 
 
-run: $(TARGET)
-	./$(TARGET)
+run: $(TARGETS)
+	./$<
 
 timeit: $(TARGET)
 	time ./$(TARGET)
