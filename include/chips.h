@@ -251,9 +251,8 @@ struct BMP085T: public Chip<Device> {
       // Read pressure 8 times oversampling: takes 25ms
       this->device().write_byte(0x34 + (oss_ << 6), 0xF4);
     } else {
-      Word raw_pressure = this->device().read_word(0xF6);
-      Byte raw_pressure_xlsb = this->device().read_byte(0xF8);
-      int32_t pressure = raw_pressure << 8 + raw_pressure_xlsb >> (8 - oss_);
+      Bytes raw_pressure = this->device().read_bytes(0xF6, 3);
+      int32_t pressure = (raw_pressure[0] << 16 + raw_pressure[1] << 8 + raw_pressure[0]) >> (8 - oss_);
       pressure = eval_pressure(pressure);
       Sample_t sample = Sample_t(Vector_t(
           0, 0, static_cast<Value_t>(pressure) * pressure_fact + pressure_offs), 
