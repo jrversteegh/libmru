@@ -18,7 +18,7 @@ using namespace ninedof;
 struct I2CDeviceMock {
   typedef int Bus_type;
   I2CDeviceMock(Bus_type& bus, int address, bool little_endian=true): words(256), bytes(256) {}
-  I2CDeviceMock(const I2CDeviceMock& device): words(256), bytes(256) {}
+  I2CDeviceMock(const I2CDeviceMock& device): words(128), bytes(256) {}
   void write_byte(const int offset, const Byte value) {
     bytes[offset] = value;
   }
@@ -40,20 +40,20 @@ struct I2CDeviceMock {
     return result;
   }
   void write_word(const int offset, const Word value) {
-    words[offset] = value;
+    words[offset >> 1] = value;
   }
   void write_words(const int offset, const Words& values) {
-    int index = offset;
+    int index = offset >> 1;
     for(Word_ci i = values.begin(); i != values.end(); ++i) {
       words[index++] = *i;
     }
   }
   Word read_word(const int offset) const {
-    return words[offset];
+    return words[offset >> 1];
   }
   Words read_words(const int offset, const int count) const {
     Words result(count);
-    int index = offset;
+    int index = offset >> 1;
     for(Word_i i = result.begin(); i != result.end(); ++i) {
       *i = words[index++];
     }
@@ -72,16 +72,41 @@ public:
   CPPUNIT_TEST_SUITE_END();
 };
 
+class BMP085ForTest: public BMP085T<I2CDeviceMock> {
+public:
+  using BMP085T<I2CDeviceMock>::BMP085T;
+  using BMP085T<I2CDeviceMock>::eval_temp;
+  using BMP085T<I2CDeviceMock>::eval_pressure;
+  using BMP085T<I2CDeviceMock>::device;
+};
+
 class BMP085Test : public CppUnit::TestFixture {
-  typedef BMP085T<I2CDeviceMock> BMP085;
   I2CDeviceMock::Bus_type* bus;
-  BMP085* ps;
+  BMP085ForTest* ps;
   void test_evaluation() {
+    ps->initialize();
+    // Example values from data sheet
+    int32_t temp = ps->eval_temp(27898);
+    int32_t pressure = ps->eval_pressure(23843);
+    CPPUNIT_ASSERT_EQUAL(150, temp);
+    CPPUNIT_ASSERT_EQUAL(69964, pressure);
   }
 public:
   virtual void setUp() {
     bus = new I2CDeviceMock::Bus_type;
-    ps = new BMP085(*bus);
+    ps = new BMP085ForTest(*bus, 0, 0);
+    // Setup example calibration data from data sheet
+    ps->device().words[0xAA >> 1] = 408;
+    ps->device().words[0xAC >> 1] = -72;
+    ps->device().words[0xAE >> 1] = -14383; 
+    ps->device().words[0xB0 >> 1] = 32741; 
+    ps->device().words[0xB2 >> 1] = 32757; 
+    ps->device().words[0xB4 >> 1] = 23153;
+    ps->device().words[0xB6 >> 1] = 6190;
+    ps->device().words[0xB8 >> 1] = 4;
+    ps->device().words[0xBA >> 1] = -32768;
+    ps->device().words[0xBC >> 1] = -8711;
+    ps->device().words[0xBE >> 1] = 2868;
   }
   virtual void tearDown() {
     delete ps;

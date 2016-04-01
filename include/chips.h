@@ -236,6 +236,7 @@ struct BMP085T: public Chip<Device> {
   virtual void initialize() {
     // Read calibration data from EEPROM
     Words words = this->device().read_words(0xAA, 11);
+    set_calibration_data(words);
   }
   virtual void poll() {
     if (loop_count_ % 120 == 0) {
@@ -248,10 +249,12 @@ struct BMP085T: public Chip<Device> {
       raw_temp = eval_temp(raw_temp);
     } else if (loop_count_ % 2 == 0) {
       // Read pressure 8 times oversampling: takes 25ms
-      this->device().write_byte(0xF4, 0xF4);
+      this->device().write_byte(0x34 + (oss_ << 6), 0xF4);
     } else {
       Word raw_pressure = this->device().read_word(0xF6);
-      int32_t pressure = eval_pressure(raw_pressure);
+      Byte raw_pressure_xlsb = this->device().read_byte(0xF8);
+      int32_t pressure = raw_pressure << 8 + raw_pressure_xlsb >> (8 - oss_);
+      pressure = eval_pressure(pressure);
       Sample_t sample = Sample_t(Vector_t(
           0, 0, static_cast<Value_t>(pressure) * pressure_fact + pressure_offs), 
           static_cast<Value_t>(temp_) * temp_fact + temp_offs); 
@@ -261,14 +264,18 @@ struct BMP085T: public Chip<Device> {
   }
   virtual void finalize() {
   }
-  BMP085T(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, false), loop_count_(0) {}
-  BMP085T(typename Device::Bus_type& bus): Chip<Device>(bus, bmp085_address, false), loop_count_(0) {}
+  BMP085T(typename Device::Bus_type& bus, const int address, const int oss): 
+        Chip<Device>(bus, address, false), loop_count_(0), oss_(oss) {}
+  BMP085T(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, false), loop_count_(0), oss_(3) {}
+  BMP085T(typename Device::Bus_type& bus): Chip<Device>(bus, bmp085_address, false), loop_count_(0), oss_(3) {}
   const Value_t value() const { return Chip<Device>::data().value; }
 protected:
   int32_t eval_temp(const Word raw_temp);
   int32_t eval_pressure(const int32_t raw_pressure);
   void set_calibration_data(const Words& calibration_data);
 private:
+  // Oversampling rate
+  int oss_;
   // Calibration parameters
   int16_t ac1_;
   int16_t ac2_;
@@ -322,12 +329,12 @@ int32_t BMP085T<Device>::eval_pressure(const int32_t raw_pressure)
   int32_t x1 = (b2_ * ((b6 * b6) >> 12)) >> 11;
   int32_t x2 = (ac2_ * b6) >> 11;
   int32_t x3 = x1 + x2;
-  int32_t b3 = ((ac1_ * 4 + x3) << 3 + 2) / 4;
+  int32_t b3 = (((ac1_ * 4 + x3) << oss_) + 2) / 4;
   x1 = (ac3_ * b6) >> 13;
   x2 = (b1_ * ((b6 * b6) >> 12)) >> 16;
   x3 = ((x1 + x2) + 2) / 4;
-  int32_t b4 = ac4_ * (uint32_t)(x3 + 32768) >> 15;
-  int32_t b7 = (uint32_t)raw_pressure - b3 * (50000 >> 3);
+  uint32_t b4 = ac4_ * (uint32_t)(x3 + 32768) >> 15;
+  uint32_t b7 = ((uint32_t)raw_pressure - b3) * (50000 >> oss_);
   if (b7 < 0x80000000) {
     result = (b7 * 2) / b4;
   } 
@@ -337,7 +344,7 @@ int32_t BMP085T<Device>::eval_pressure(const int32_t raw_pressure)
   x1 = (result >> 8) * (result >> 8);
   x1 = (x1 * 3038) >> 16;
   x2 = (-7357 * result) >> 16;
-  result = result + (x1 + x2 + 3791) >> 4;
+  result = result + ((x1 + x2 + 3791) >> 4);
   return result;
 }
 
