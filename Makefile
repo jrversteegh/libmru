@@ -1,10 +1,8 @@
-TARGET := ninedof
+TARGETS := ninedof tendof
 LIBS := -lCGAL
 # Rounding math required by CGAL
 CFLAGS := -frounding-math -std=c++11 -O2 
 SOURCES := $(wildcard src/*.cc)
-TARGET_SOURCE := src/$(TARGET).cpp
-TARGET_OBJ := src/$(TARGET).o
 HEADERS := $(wildcard include/*.h)
 DEFINES := -DCGAL_NDEBUG
 OBJS := $(patsubst %.cc, %.o, $(SOURCES))
@@ -13,7 +11,7 @@ TEST_TARGETS := $(patsubst %.cpp, %.run, $(TEST_SOURCES))
 TEST_RUN := $(patsubst %.run, %, $(TEST_TARGETS))
 
 
-all: $(TARGET)
+all: $(TARGETS)
 	
 %.o: %.cc $(HEADERS) Makefile
 	g++ -c $(CFLAGS) $(DEFINES) -o $@ $< 
@@ -21,8 +19,9 @@ all: $(TARGET)
 %.o: %.cpp $(HEADERS) Makefile
 	g++ -c $(CFLAGS) $(DEFINES) -o $@ $<
 
-$(TARGET): $(OBJS) $(TARGET_OBJ)
-	g++ $(CFLAGS) -o $@ $(OBJS) $(LIBS) $(TARGET_OBJ) 
+
+%: src/%.cpp Makefile $(OBJS) 
+	g++ $(CFLAGS) $(DEFINES) -o $@ $(OBJS) $(LIBS) $< 
 
 run: $(TARGET)
 	./$(TARGET)

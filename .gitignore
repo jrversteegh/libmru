@@ -6,4 +6,5 @@
 *.lai
 *.la
 *.a
-ninedof
+/ninedof
+/tendof

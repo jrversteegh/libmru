@@ -34,7 +34,7 @@ void signal_handler(int sig) {
 int main()
 {
   signal(SIGINT, &signal_handler);
-  cout << "Sparkfun 9 DOF stick" << endl;
+  cout << "10 DOF stick" << endl;
   cout << "Press 'CTRL-C' to quit." << endl;
   cout << "Set \"NINEDOF_SAMPLE_RATE\" for other rates than 1Hz." << endl;
   cout << "Set \"NINEDOF_I2C_BUS\" for i2c bus other than 0." << endl;
@@ -49,12 +49,14 @@ int main()
     I2C_bus bus(busno);
 
     HMC5843 compass(bus);
-    ADXL345 acceleration(bus);
-    ITG3200 gyro(bus);
+    BMA180 acceleration(bus);
+    ITG3205 gyro(bus);
+    BMP085 pressure(bus);
 
     compass.initialize();
     acceleration.initialize();
     gyro.initialize();
+    pressure.initialize();
 
     int wait = 1000;
     char *sample_rate = getenv("NINEDOF_SAMPLE_RATE");
@@ -77,6 +79,8 @@ int main()
         acceleration.data().vector << " ## " <<
         gyro.data().vector << " ## " <<
         gyro.value() <<
+        pressure.data().vector[2] <<
+        pressure.value() <<
         endl;
     }
 

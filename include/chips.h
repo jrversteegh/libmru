@@ -156,8 +156,8 @@ template<class Device>
 struct BMA180T: public Chip<Device> {
   virtual void initialize() {
     // Get chip information
-    set_chip_id(this->device().read_byte(0x00));
-    set_chip_version(this->device().read_byte(0x01));
+    this->set_chip_id(this->device().read_byte(0x00));
+    this->set_chip_version(this->device().read_byte(0x01));
 
     // Disable wake up mode (bit 0): never sleep
     this->device().write_byte(0x0D, 0x01);
@@ -218,7 +218,7 @@ struct ITG3200T: public Chip<Device> {
   }
   ITG3200T(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, false) {}
   ITG3200T(typename Device::Bus_type& bus): Chip<Device>(bus, itg3200_address, false) {}
-  const Value_t temp() const { return Chip<Device>::data().value; }
+  const Value_t value() const { return Chip<Device>::data().value; }
 };
 
 typedef ITG3200T<I2C_device> ITG3200;
@@ -253,7 +253,7 @@ struct BMP085T: public Chip<Device> {
       Word raw_pressure = this->device().read_word(0xF6);
       int32_t pressure = eval_pressure(raw_pressure);
       Sample_t sample = Sample_t(Vector_t(
-          static_cast<Value_t>(pressure) * pressure_fact + pressure_offs, 0, 0), 
+          0, 0, static_cast<Value_t>(pressure) * pressure_fact + pressure_offs), 
           static_cast<Value_t>(temp_) * temp_fact + temp_offs); 
       this->push_sample(sample);
     }
@@ -263,6 +263,7 @@ struct BMP085T: public Chip<Device> {
   }
   BMP085T(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, false), loop_count_(0) {}
   BMP085T(typename Device::Bus_type& bus): Chip<Device>(bus, bmp085_address, false), loop_count_(0) {}
+  const Value_t value() const { return Chip<Device>::data().value; }
 protected:
   int32_t eval_temp(const Word raw_temp);
   int32_t eval_pressure(const int32_t raw_pressure);
