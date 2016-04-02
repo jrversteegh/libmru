@@ -28,11 +28,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define adxl345_z_fact (-3.95 * 0.009810)
 #define adxl345_z_offs (-1.05)
 
-#define bma180_x_fact (1.0)
+// Default range setting is 2g -> .25mg/LSB
+#define bma180_x_fact (0.25 * 0.009810)
 #define bma180_x_offs (0.0)
-#define bma180_y_fact (1.0)
+#define bma180_y_fact (0.25 * 0.009810)
 #define bma180_y_offs (0.0)
-#define bma180_z_fact (1.0)
+#define bma180_z_fact (0.25 * 0.009810)
 #define bma180_z_offs (0.0)
 #define bma180_temp_fact (1.0)
 #define bma180_temp_offs (0.0)
