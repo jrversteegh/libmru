@@ -94,9 +94,9 @@ struct HMC5843T: public Chip<Device> {
     //if (ready) {
     Words words = this->device().read_words(0x03, 3);
     Sample_t sample = Sample_t(Vector_t(
-        static_cast<Value_t>(static_cast<int16_t>(words[1])) * comp_x_fact + comp_x_offs,
-        static_cast<Value_t>(static_cast<int16_t>(words[0])) * comp_y_fact + comp_y_offs,
-        static_cast<Value_t>(static_cast<int16_t>(words[2])) * comp_z_fact + comp_z_offs
+        static_cast<Value_t>(static_cast<int16_t>(words[1])) * hmc5843_x_fact + hmc5843_x_offs,
+        static_cast<Value_t>(static_cast<int16_t>(words[0])) * hmc5843_y_fact + hmc5843_y_offs,
+        static_cast<Value_t>(static_cast<int16_t>(words[2])) * hmc5843_z_fact + hmc5843_z_offs
     ));
     this->push_sample(sample);
     //}
@@ -134,9 +134,9 @@ struct ADXL345T: public Chip<Device> {
   virtual void poll() {
     Words words = this->device().read_words(0x32, 3);
     Sample_t sample = Sample_t(Vector_t(
-        static_cast<Value_t>(static_cast<int16_t>(words[0])) * accel_x_fact + accel_x_offs,
-        static_cast<Value_t>(static_cast<int16_t>(words[1])) * accel_y_fact + accel_y_offs,
-        static_cast<Value_t>(static_cast<int16_t>(words[2])) * accel_z_fact + accel_z_offs 
+        static_cast<Value_t>(static_cast<int16_t>(words[0])) * adxl345_x_fact + adxl345_x_offs,
+        static_cast<Value_t>(static_cast<int16_t>(words[1])) * adxl345_y_fact + adxl345_y_offs,
+        static_cast<Value_t>(static_cast<int16_t>(words[2])) * adxl345_z_fact + adxl345_z_offs 
     ));
     this->push_sample(sample);
   }
@@ -172,10 +172,10 @@ struct BMA180T: public Chip<Device> {
     Words xyz = this->device().read_words(0x02, 3);
     Byte temp = this->device().read_byte(0x08);
     Sample_t sample = Sample_t(Vector_t(
-        static_cast<Value_t>(static_cast<int16_t>(xyz[0] >> 2)) * accel_x_fact + accel_x_offs,
-        static_cast<Value_t>(static_cast<int16_t>(xyz[1] >> 2)) * accel_y_fact + accel_y_offs,
-        static_cast<Value_t>(static_cast<int16_t>(xyz[2] >> 2)) * accel_z_fact + accel_z_offs 
-    ), static_cast<Value_t>(static_cast<int8_t>(temp)) * gyro_temp_fact + gyro_temp_offs);
+        static_cast<Value_t>(static_cast<int16_t>(xyz[0] >> 2)) * bma180_x_fact + bma180_x_offs,
+        static_cast<Value_t>(static_cast<int16_t>(xyz[1] >> 2)) * bma180_y_fact + bma180_y_offs,
+        static_cast<Value_t>(static_cast<int16_t>(xyz[2] >> 2)) * bma180_z_fact + bma180_z_offs 
+    ), static_cast<Value_t>(static_cast<int8_t>(temp)) * bma180_temp_fact + bma180_temp_offs);
     this->push_sample(sample);
   }
   virtual void finalize() {
@@ -205,10 +205,10 @@ struct ITG3200T: public Chip<Device> {
   virtual void poll() {
     Words words = this->device().read_words(0x1B, 4);
     Sample_t sample = Sample_t(Vector_t(
-        static_cast<Value_t>(static_cast<int16_t>(words[1])) * gyro_x_fact + gyro_x_offs,
-        static_cast<Value_t>(static_cast<int16_t>(words[2])) * gyro_y_fact + gyro_y_offs,
-        static_cast<Value_t>(static_cast<int16_t>(words[3])) * gyro_z_fact + gyro_z_offs
-      ), static_cast<Value_t>(static_cast<int16_t>(words[0])) * gyro_temp_fact + gyro_temp_offs
+        static_cast<Value_t>(static_cast<int16_t>(words[1])) * itg3200_x_fact + itg3200_x_offs,
+        static_cast<Value_t>(static_cast<int16_t>(words[2])) * itg3200_y_fact + itg3200_y_offs,
+        static_cast<Value_t>(static_cast<int16_t>(words[3])) * itg3200_z_fact + itg3200_z_offs
+      ), static_cast<Value_t>(static_cast<int16_t>(words[0])) * itg3200_temp_fact + itg3200_temp_offs
     ); 
     this->push_sample(sample);
   }
@@ -249,14 +249,15 @@ struct BMP085T: public Chip<Device> {
       raw_temp = eval_temp(raw_temp);
     } else if (loop_count_ % 2 == 0) {
       // Read pressure 8 times oversampling: takes 25ms
-      this->device().write_byte(0x34 + (oss_ << 6), 0xF4);
+      this->device().write_byte(0xF4, 0x34 + (oss_ << 6));
     } else {
       Bytes raw_pressure = this->device().read_bytes(0xF6, 3);
-      int32_t pressure = (raw_pressure[0] << 16 + raw_pressure[1] << 8 + raw_pressure[0]) >> (8 - oss_);
+      int32_t pressure = (raw_pressure[0] << 16 + raw_pressure[1] << 8 + raw_pressure[0]) 
+          >> (8 - oss_);
       pressure = eval_pressure(pressure);
       Sample_t sample = Sample_t(Vector_t(
-          0, 0, static_cast<Value_t>(pressure) * pressure_fact + pressure_offs), 
-          static_cast<Value_t>(temp_) * temp_fact + temp_offs); 
+          0, 0, static_cast<Value_t>(pressure) * bmp085_pressure_fact + bmp085_pressure_offs), 
+          static_cast<Value_t>(temp_) * bmp085_temp_fact + bmp085_temp_offs); 
       this->push_sample(sample);
     }
     loop_count_++;

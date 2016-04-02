@@ -78,9 +78,9 @@ int main()
         compass.data().vector << " ## " <<
         acceleration.data().vector << " ## " <<
         gyro.data().vector << " ## " <<
-        gyro.value() <<
-        pressure.data().vector[2] <<
-        pressure.value() <<
+        gyro.value() << " ## " <<
+        setw(8) << pressure.data().vector[2] << " ## " <<
+        setw(8) << pressure.value() <<
         endl;
     }
 
