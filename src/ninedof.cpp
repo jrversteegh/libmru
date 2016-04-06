@@ -76,7 +76,7 @@ int main()
         compass.data().vector << " ## " <<
         acceleration.data().vector << " ## " <<
         gyro.data().vector << " ## " <<
-        setw(8) << gyro.value() <<
+        setw(8) << gyro.data().value <<
         endl;
     }
 

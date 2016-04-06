@@ -52,14 +52,14 @@ struct Chip {
       chip_id_(0), chip_version_(0) {}
 protected:
   Chip& push_sample(const Sample_t& sample) {
-    history_.push_back(sample);
-    data_ = history_.back();
+    data_ = sample;
+    history_.push_back(data_);
     trim_history();
     return *this;
   }
   Chip& push_sample(Sample_t&& sample) {
-    history_.push_back(sample);
-    data_ = history_.back();
+    data_ = sample;
+    history_.push_back(data_);
     trim_history();
     return *this;
   }
@@ -155,28 +155,44 @@ typedef ADXL345T<I2C_device> ADXL345;
 template<class Device>
 struct BMA180T: public Chip<Device> {
   virtual void initialize() {
+
+    // Start by soft resetting the device
+    this->device().write_byte(0x10, 0xB6);
+    // Wait a little bit for the device to come up
+    std::this_thread::sleep_for(std::chrono::milliseconds(50));
+
+    // Disable wake up mode (bit 0)
+    this->device().write_byte(0x0D, 0x01);
+    // ... and bit 0
+    this->device().write_byte(0x34, 0x80);
+
+    // Set range to -4/+4g: 0.5mg/bit
+    this->device().write_byte(0x35, 0x08);
+    // Put in ultra low noise mode
+    this->device().write_byte(0x30, 0x01);
+    // set filter range to 20Hz (defaults to 1200Hz)
+    this->device().write_byte(0x20, 0x10);
+
     // Get chip information
     this->set_chip_id(this->device().read_byte(0x00));
     this->set_chip_version(this->device().read_byte(0x01));
-
-    // Disable wake up mode (bit 0): never sleep
-    this->device().write_byte(0x0D, 0x01);
-    // Put in ultra low noise mode
-    this->device().write_byte(0x30, 0x01);
-    // Set range to -2/+2g: 0.25mg/bit
-    this->device().write_byte(0x35, 0x04);
-    // set filter range to 20Hz (defaults to 1200Hz)
-    this->device().write_byte(0x20, 0x10);
   }
   virtual void poll() {
     Words xyz = this->device().read_words(0x02, 3);
     Byte temp = this->device().read_byte(0x08);
-    Sample_t sample = Sample_t(Vector_t(
-        static_cast<Value_t>(static_cast<int16_t>(xyz[0] >> 2)) * bma180_x_fact + bma180_x_offs,
-        static_cast<Value_t>(static_cast<int16_t>(xyz[1] >> 2)) * bma180_y_fact + bma180_y_offs,
-        static_cast<Value_t>(static_cast<int16_t>(xyz[2] >> 2)) * bma180_z_fact + bma180_z_offs 
-    ), static_cast<Value_t>(static_cast<int8_t>(temp)) * bma180_temp_fact + bma180_temp_offs);
-    this->push_sample(sample);
+    int16_t x = static_cast<int16_t>(xyz[0]);
+    int16_t y = static_cast<int16_t>(xyz[1]);
+    int16_t z = static_cast<int16_t>(xyz[2]);
+    // Check the 0 bits of the data for whether the data is new..
+    if ((x % 1 == 1) && (y % 1 == 1) && (z % 1 == 1)) {
+      // .. if so, add it with the 0 and 1 bits shifted out (the values are only 14 bit)
+      Sample_t sample = Sample_t(Vector_t(
+          static_cast<Value_t>(x >> 2) * bma180_x_fact + bma180_x_offs,
+          static_cast<Value_t>(y >> 2) * bma180_y_fact + bma180_y_offs,
+          static_cast<Value_t>(z >> 2) * bma180_z_fact + bma180_z_offs 
+      ), static_cast<Value_t>(static_cast<int8_t>(temp)) * bma180_temp_fact + bma180_temp_offs);
+      this->push_sample(sample);
+    }
   }
   virtual void finalize() {
     // Put the device to sleep
@@ -218,7 +234,6 @@ struct ITG3200T: public Chip<Device> {
   }
   ITG3200T(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, false) {}
   ITG3200T(typename Device::Bus_type& bus): Chip<Device>(bus, itg3200_address, false) {}
-  const Value_t value() const { return Chip<Device>::data().value; }
 };
 
 typedef ITG3200T<I2C_device> ITG3200;
@@ -245,15 +260,15 @@ struct BMP085T: public Chip<Device> {
       this->device().write_byte(0xF4, 0x2E);
     } else if (loop_count_ == 1) {
       // Read temperature
-      Byte raw_temp = this->device().read_byte(0xF6);
-      raw_temp = eval_temp(raw_temp);
+      Word raw_temp = this->device().read_word(0xF6);
+      temp_ = eval_temp(raw_temp);
     } else if (loop_count_ % 2 == 0) {
-      // Read pressure 8 times oversampling: takes 25ms
+      // Get pressure 8 times oversampling: takes 25ms
       this->device().write_byte(0xF4, 0x34 + (oss_ << 6));
     } else {
       Bytes raw_pressure = this->device().read_bytes(0xF6, 3);
-      int32_t pressure = (raw_pressure[0] << 16 + raw_pressure[1] << 8 + raw_pressure[0]) 
-          >> (8 - oss_);
+      int32_t pressure = (raw_pressure[0] << 16) + (raw_pressure[1] << 8) + raw_pressure[0];
+      pressure >>= (8 - oss_);
       pressure = eval_pressure(pressure);
       Sample_t sample = Sample_t(Vector_t(
           0, 0, static_cast<Value_t>(pressure) * bmp085_pressure_fact + bmp085_pressure_offs), 
@@ -268,7 +283,6 @@ struct BMP085T: public Chip<Device> {
         Chip<Device>(bus, address, false), loop_count_(0), oss_(oss) {}
   BMP085T(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, false), loop_count_(0), oss_(3) {}
   BMP085T(typename Device::Bus_type& bus): Chip<Device>(bus, bmp085_address, false), loop_count_(0), oss_(3) {}
-  const Value_t value() const { return Chip<Device>::data().value; }
 protected:
   int32_t eval_temp(const Word raw_temp);
   int32_t eval_pressure(const int32_t raw_pressure);

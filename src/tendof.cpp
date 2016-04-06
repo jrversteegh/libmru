@@ -58,6 +58,8 @@ int main()
     gyro.initialize();
     pressure.initialize();
 
+    cout << "BMA180: " << acceleration.chip_id() << " " << acceleration.chip_version() << endl;
+
     int wait = 1000;
     char *sample_rate = getenv("NINEDOF_SAMPLE_RATE");
     if (sample_rate != 0) {
@@ -72,15 +74,17 @@ int main()
       compass.poll();
       acceleration.poll();
       gyro.poll();
+      pressure.poll();
 
       cout << 
         compass.data().time << " ## " <<
         compass.data().vector << " ## " <<
         acceleration.data().vector << " ## " <<
+        setw(8) << acceleration.data().value << " ## " <<
         gyro.data().vector << " ## " <<
-        gyro.value() << " ## " <<
+        setw(8) << gyro.data().value << " ## " <<
         setw(8) << pressure.data().vector[2] << " ## " <<
-        setw(8) << pressure.value() <<
+        setw(8) << pressure.data().value <<
         endl;
     }
 

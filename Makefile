@@ -13,6 +13,7 @@ TEST_RUN := $(patsubst %.run, %, $(TEST_TARGETS))
 
 all: $(TARGETS)
 	
+.PRECIOUS: %.o
 %.o: %.cc $(HEADERS) Makefile
 	g++ -c $(CFLAGS) $(DEFINES) -o $@ $< 
 
@@ -20,17 +21,17 @@ all: $(TARGETS)
 	g++ -c $(CFLAGS) $(DEFINES) -o $@ $<
 
 
-%: src/%.cpp Makefile $(OBJS) 
-	g++ $(CFLAGS) $(DEFINES) -o $@ $(OBJS) $(LIBS) $< 
+%: src/%.o Makefile $(OBJS) 
+	g++ -o $@ $< $(OBJS) $(LIBS) 
 
 run: $(TARGETS)
 	./$<
 
-timeit: $(TARGET)
-	time ./$(TARGET)
+timeit: $(TARGETS)
+	time ./$<
 
 clean:
-	rm -f $(TARGET) $(TEST_TARGETS) $(OBJS)
+	rm -f $(TARGETS) $(TEST_TARGETS) $(OBJS)
 
 test_%.run: test_%.cpp $(OBJS) 
 	g++ $(CFLAGS) -o $@ $< $(OBJS) $(LIBS) -lcppunit
