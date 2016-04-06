@@ -161,17 +161,25 @@ struct BMA180T: public Chip<Device> {
     // Wait a little bit for the device to come up
     std::this_thread::sleep_for(std::chrono::milliseconds(50));
 
-    // Disable wake up mode (bit 0)
-    this->device().write_byte(0x0D, 0x01);
-    // ... and bit 0
+    // Disable wake up and sleep mode (bit 0 and 1), enable image write (bit 4)
+    this->device().write_byte(0x0D, 0x11);
+    // ... more no wake up: bit 0
     this->device().write_byte(0x34, 0x80);
 
+    // Disable offsets
+    this->device().write_byte(0x0E, 0x00);
+
+    Byte reg35 = this->device().read_byte(0x35);
     // Set range to -4/+4g: 0.5mg/bit
-    this->device().write_byte(0x35, 0x08);
+    this->device().write_byte(0x35, (reg35 & 0xF1) | 0x08);
+
     // Put in ultra low noise mode
     this->device().write_byte(0x30, 0x01);
     // set filter range to 20Hz (defaults to 1200Hz)
     this->device().write_byte(0x20, 0x10);
+
+    // Disable wake up mode and sleep (bit 0 and 1), disable image write (bit 4)
+    this->device().write_byte(0x0D, 0x01);
 
     // Get chip information
     this->set_chip_id(this->device().read_byte(0x00));
@@ -180,19 +188,16 @@ struct BMA180T: public Chip<Device> {
   virtual void poll() {
     Words xyz = this->device().read_words(0x02, 3);
     Byte temp = this->device().read_byte(0x08);
-    int16_t x = static_cast<int16_t>(xyz[0]);
-    int16_t y = static_cast<int16_t>(xyz[1]);
-    int16_t z = static_cast<int16_t>(xyz[2]);
-    // Check the 0 bits of the data for whether the data is new..
-    if ((x % 1 == 1) && (y % 1 == 1) && (z % 1 == 1)) {
-      // .. if so, add it with the 0 and 1 bits shifted out (the values are only 14 bit)
-      Sample_t sample = Sample_t(Vector_t(
-          static_cast<Value_t>(x >> 2) * bma180_x_fact + bma180_x_offs,
-          static_cast<Value_t>(y >> 2) * bma180_y_fact + bma180_y_offs,
-          static_cast<Value_t>(z >> 2) * bma180_z_fact + bma180_z_offs 
-      ), static_cast<Value_t>(static_cast<int8_t>(temp)) * bma180_temp_fact + bma180_temp_offs);
-      this->push_sample(sample);
-    }
+    // The 0 and 1 bits are shifted out (the values are only 14 bit)
+    int16_t x = static_cast<int16_t>(xyz[0]) >> 2;
+    int16_t y = static_cast<int16_t>(xyz[1]) >> 2;
+    int16_t z = static_cast<int16_t>(xyz[2]) >> 2;
+    Sample_t sample = Sample_t(Vector_t(
+        static_cast<Value_t>(x) * bma180_x_fact + bma180_x_offs,
+        static_cast<Value_t>(y) * bma180_y_fact + bma180_y_offs,
+        static_cast<Value_t>(z) * bma180_z_fact + bma180_z_offs 
+    ), static_cast<Value_t>(static_cast<int8_t>(temp)) * bma180_temp_fact + bma180_temp_offs);
+    this->push_sample(sample);
   }
   virtual void finalize() {
     // Put the device to sleep

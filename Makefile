@@ -27,6 +27,12 @@ all: $(TARGETS)
 run: $(TARGETS)
 	./$<
 
+run9: ninedof
+	./$<
+
+run10: tendof
+	./$<
+
 timeit: $(TARGETS)
 	time ./$<
 

@@ -38,7 +38,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define bma180_z_fact ((Value_t)(0.5 * 0.009810))
 #define bma180_z_offs ((Value_t)(0.0))
 #define bma180_temp_fact ((Value_t)(1.0))
-#define bma180_temp_offs ((Value_t)(22.0))
+#define bma180_temp_offs ((Value_t)(22.5))
 
 #define hmc5843_x_fact ((Value_t)( 0.085))
 #define hmc5843_x_offs ((Value_t)( 0.0))
@@ -63,10 +63,10 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define itg3205_z_fact ((Value_t)(-0.001214))
 #define itg3205_z_offs ((Value_t)( 0.00))
 #define itg3205_temp_fact ((Value_t)( 0.003571))
-#define itg3205_temp_offs ((Value_t)( 82.5 ))
+#define itg3205_temp_offs ((Value_t)( 83.5 ))
 
 #define bmp085_pressure_fact ((Value_t)( 1.0))
-#define bmp085_pressure_offs ((Value_t)( 0.0))
+#define bmp085_pressure_offs ((Value_t)( 300.0))
 #define bmp085_temp_fact ((Value_t)( 0.1))
 #define bmp085_temp_offs ((Value_t)(-2.0))
 
