@@ -35,23 +35,51 @@ typedef boost::posix_time::ptime Time_t;
 inline Time_t utc_now() {
   return boost::posix_time::microsec_clock::universal_time();
 }
+
 typedef float Value_t;
+typedef std::deque<Value_t> Values_t;
+typedef Values_t::iterator Value_i;
+
 typedef CGAL::Simple_cartesian<Value_t>::Vector_3 Vector_t;
 typedef std::deque<Vector_t> Vectors_t;
 typedef Vectors_t::iterator Vector_i;
-typedef std::deque<Value_t> Values_t;
-typedef Values_t::iterator Value_i;
+
+typedef struct Calibration {
+  Value_t x_factor;
+  Value_t x_offset;
+  Value_t y_factor;
+  Value_t y_offset;
+  Value_t z_factor;
+  Value_t z_offset;
+  Value_t v_factor;
+  Value_t v_offset;
+} Calibration_t;
+
 typedef struct Sample {
   Time_t time;
   Vector_t vector;
   Value_t value;
   Sample(): time(), vector(), value() {}
-  Sample(const Sample& s): time(s.time), vector(s.vector), value(s.value) {}
-  Sample(const Time_t& t, const Vector_t& vr): time(t), vector(vr), value() {}
-  Sample(const Time_t& t, const Vector_t& vr, const Value_t& v): time(t), vector(vr), value(v) {}
-  Sample(const Vector_t& vr): time(utc_now()), vector(vr), value() {}
-  Sample(const Vector_t& vr, const Value_t& v): time(utc_now()), vector(vr), value(v) {}
-  Sample(Sample&& s): time(std::move(s.time)), vector(std::move(s.vector)), value(std::move(s.value)) {}
+  Sample(const Sample& s): 
+      time(s.time), vector(s.vector), value(s.value) {}
+  Sample(const Time_t& t, const Vector_t& vr): 
+      time(t), vector(vr), value() {}
+  Sample(const Time_t& t, const Vector_t& vr, const Value_t& v): 
+      time(t), vector(vr), value(v) {}
+  Sample(const Vector_t& vr): 
+      time(utc_now()), vector(vr), value() {}
+  Sample(const Vector_t& vr, const Value_t& v): 
+      time(utc_now()), vector(vr), value(v) {}
+  Sample(Sample&& s): 
+      time(std::move(s.time)), vector(std::move(s.vector)), value(std::move(s.value)) {}
+  Sample(const Time_t& t, const Value_t& x, const Value_t& y, const Value_t& z,
+         const Value_t& v, const Calibration& calibration):
+      time(t) {
+    vector = Vector_t(x * calibration.x_factor + calibration.x_offset,
+                      y * calibration.y_factor + calibration.y_offset,
+                      z * calibration.z_factor + calibration.z_offset);
+    value = v * calibration.v_factor + calibration.v_offset;
+  }
   Sample& operator=(const Sample& s) {
     time = s.time;
     vector = s.vector;
@@ -67,6 +95,7 @@ typedef struct Sample {
 } Sample_t;
 typedef std::deque<Sample_t> Samples_t;
 typedef Samples_t::iterator Sample_i;
+
 
 } //namespace ninedof
 

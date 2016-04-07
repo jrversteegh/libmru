@@ -28,6 +28,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "i2cbus.h"
 #include "calibration.h"
 
+#define history_item_count (100000)
+
 namespace ninedof {
 
 extern const int hmc5843_address;

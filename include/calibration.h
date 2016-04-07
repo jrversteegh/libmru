@@ -23,6 +23,12 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "types.h"
 
+namespace ninedof {
+
+extern Calibration&& load_calibration(const std::string& filename, const std::string& section);
+extern void save_calibration(const std::string& filename, const std::string& section,
+                             const Calibration& calibration);
+
 #define adxl345_x_fact ((Value_t)( 3.78 * 0.009810))
 #define adxl345_x_offs ((Value_t)(-0.15))
 #define adxl345_y_fact ((Value_t)(-3.78 * 0.009810))
@@ -70,6 +76,5 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #define bmp085_temp_fact ((Value_t)( 0.1))
 #define bmp085_temp_offs ((Value_t)(-2.0))
 
-#define history_item_count (100000)
-
+}  // namespace ninedof
 #endif
