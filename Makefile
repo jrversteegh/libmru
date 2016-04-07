@@ -1,5 +1,5 @@
 TARGETS := ninedof tendof
-LIBS := -lCGAL
+LIBS := -lCGAL -lboost_filesystem -lboost_system
 # Rounding math required by CGAL
 CFLAGS := -frounding-math -std=c++11 -O2 
 SOURCES := $(wildcard src/*.cc)
@@ -40,7 +40,7 @@ clean:
 	rm -f $(TARGETS) $(TEST_TARGETS) $(OBJS)
 
 test_%.run: test_%.cpp $(OBJS) 
-	g++ $(CFLAGS) -o $@ $< $(OBJS) $(LIBS) -lcppunit
+	g++ $(CFLAGS) -o $@ $< $(OBJS) -lcppunit $(LIBS) 
 
 
 .PHONY: $(TEST_RUN) test test_message

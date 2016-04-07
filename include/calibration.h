@@ -21,12 +21,17 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #ifndef NINEDOF_CALIBRATION_
 #define NINEDOF_CALIBRATION_
 
+#include <boost/filesystem.hpp>
+
 #include "types.h"
 
 namespace ninedof {
 
 extern Calibration&& load_calibration(const std::string& filename, const std::string& section);
+extern Calibration&& load_calibration(const boost::filesystem::path& filename, const std::string& section);
 extern void save_calibration(const std::string& filename, const std::string& section,
+                             const Calibration& calibration);
+extern void save_calibration(const boost::filesystem::path& filename, const std::string& section,
                              const Calibration& calibration);
 
 #define adxl345_x_fact ((Value_t)( 3.78 * 0.009810))
