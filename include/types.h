@@ -45,14 +45,33 @@ typedef std::deque<Vector_t> Vectors_t;
 typedef Vectors_t::iterator Vector_i;
 
 typedef struct Calibration {
-  Value_t x_factor;
-  Value_t x_offset;
-  Value_t y_factor;
-  Value_t y_offset;
-  Value_t z_factor;
-  Value_t z_offset;
-  Value_t v_factor;
-  Value_t v_offset;
+  Vector_t vector_factor;
+  Vector_t vector_offset;
+  Value_t value_factor;
+  Value_t value_offset;
+  Calibration(): 
+      vector_factor(1.0,1.0,1.0), vector_offset(0.0, 0.0, 0.0),
+      value_factor(1.0), value_offset(0.0) {}
+  Calibration(const Calibration& calibration): 
+      vector_factor(calibration.vector_factor), vector_offset(calibration.vector_offset),
+      value_factor(calibration.value_factor), value_offset(calibration.value_offset) {}
+  Calibration(Calibration&& calibration): 
+      vector_factor(calibration.vector_factor), vector_offset(calibration.vector_offset),
+      value_factor(calibration.value_factor), value_offset(calibration.value_offset) {}
+  Calibration& operator=(const Calibration& calibration) {
+    vector_factor = calibration.vector_factor;
+    vector_offset = calibration.vector_offset;
+    value_factor = calibration.value_factor;
+    value_offset = calibration.value_offset;
+    return *this;
+  }
+  Calibration& operator=(Calibration&& calibration) {
+    vector_factor = std::move(calibration.vector_factor);
+    vector_offset = std::move(calibration.vector_offset);
+    value_factor = std::move(calibration.value_factor);
+    value_offset = std::move(calibration.value_offset);
+    return *this;
+  }
 } Calibration_t;
 
 typedef struct Sample {
@@ -72,13 +91,11 @@ typedef struct Sample {
       time(utc_now()), vector(vr), value(v) {}
   Sample(Sample&& s): 
       time(std::move(s.time)), vector(std::move(s.vector)), value(std::move(s.value)) {}
-  Sample(const Time_t& t, const Value_t& x, const Value_t& y, const Value_t& z,
-         const Value_t& v, const Calibration& calibration):
+  Sample(const Time_t& t, const Vector_t& vr,
+         const Value_t& v, const Calibration& cal):
       time(t) {
-    vector = Vector_t(x * calibration.x_factor + calibration.x_offset,
-                      y * calibration.y_factor + calibration.y_offset,
-                      z * calibration.z_factor + calibration.z_offset);
-    value = v * calibration.v_factor + calibration.v_offset;
+    vector = vr * cal.vector_factor + cal.vector_offset;
+    value = v * cal.value_factor + cal.value_offset;
   }
   Sample& operator=(const Sample& s) {
     time = s.time;

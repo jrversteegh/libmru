@@ -6,16 +6,17 @@ d := $(dir $(lastword $(MAKEFILE_LIST)))
 TEST_SOURCES := $(wildcard $(d)*.cpp)
 TEST_TARGETS := $(patsubst %.cpp, %.run, $(TEST_SOURCES))
 TEST_RUN := $(patsubst %.run, %, $(TEST_TARGETS))
-CLEAN_TARGETS := $(CLEAN_TARGETS) $(d)calibration/temp.ini $(d)calibration/copy.ini
 
-EXTRA_SOURCES := $(d)boost_copy_file.cc
-EXTRA_OBJS := $(patsubst %.cc, %.o, $(EXTRA_SOURCES))
+TEST_EXTRA_SOURCES := $(d)boost_copy_file.cc
+TEST_EXTRA_OBJS := $(patsubst %.cc, %.o, $(TEST_EXTRA_SOURCES))
 
-$(EXTRA_OBJS): $(EXTRA_SOURCES) 
+CLEAN_TARGETS := $(CLEAN_TARGETS) $(d)calibration/temp.ini $(d)calibration/copy.ini $(TEST_EXTRA_OBJS)
+
+$(TEST_EXTRA_OBJS): $(TEST_EXTRA_SOURCES) 
 	g++ -c -O2 -o $@ $^    
 
-$(d)test_%.run: $(d)test_%.cpp $(OBJS) $(EXTRA_OBJS)
-	g++ $(CFLAGS) -o $@ $< $(OBJS) $(EXTRA_OBJS) -lcppunit $(LIBS)  
+$(d)test_%.run: $(d)test_%.cpp $(OBJS) $(TEST_EXTRA_OBJS)
+	g++ $(CFLAGS) -o $@ $< $(OBJS) $(TEST_EXTRA_OBJS) -lcppunit $(LIBS)  
  
 .PHONY: $(TEST_RUN) test test_message 
 $(TEST_RUN): $(TEST_TARGETS) 

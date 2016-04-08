@@ -34,52 +34,6 @@ extern void save_calibration(const std::string& filename, const std::string& sec
 extern void save_calibration(const boost::filesystem::path& filename, const std::string& section,
                              const Calibration& calibration);
 
-#define adxl345_x_fact ((Value_t)( 3.78 * 0.009810))
-#define adxl345_x_offs ((Value_t)(-0.15))
-#define adxl345_y_fact ((Value_t)(-3.78 * 0.009810))
-#define adxl345_y_offs ((Value_t)( 0.15))
-#define adxl345_z_fact ((Value_t)(-3.95 * 0.009810))
-#define adxl345_z_offs ((Value_t)(-1.05))
-
-// Default range setting is 4g -> .5mg/LSB
-#define bma180_x_fact ((Value_t)(0.5 * 0.009810))
-#define bma180_x_offs ((Value_t)(0.0))
-#define bma180_y_fact ((Value_t)(0.5 * 0.009810))
-#define bma180_y_offs ((Value_t)(0.0))
-#define bma180_z_fact ((Value_t)(0.5 * 0.009810))
-#define bma180_z_offs ((Value_t)(0.0))
-#define bma180_temp_fact ((Value_t)(1.0))
-#define bma180_temp_offs ((Value_t)(22.5))
-
-#define hmc5843_x_fact ((Value_t)( 0.085))
-#define hmc5843_x_offs ((Value_t)( 0.0))
-#define hmc5843_y_fact ((Value_t)( 0.085))
-#define hmc5843_y_offs ((Value_t)( 0.0))
-#define hmc5843_z_fact ((Value_t)( 0.085))
-#define hmc5843_z_offs ((Value_t)( 0.0))
-
-#define itg3200_x_fact ((Value_t)( 0.001214))
-#define itg3200_x_offs ((Value_t)( 0.00))
-#define itg3200_y_fact ((Value_t)(-0.001214))
-#define itg3200_y_offs ((Value_t)( 0.00))
-#define itg3200_z_fact ((Value_t)(-0.001214))
-#define itg3200_z_offs ((Value_t)( 0.00))
-#define itg3200_temp_fact ((Value_t)( 0.003571))
-#define itg3200_temp_offs ((Value_t)( 81.0 ))
-
-#define itg3205_x_fact ((Value_t)( 0.001214))
-#define itg3205_x_offs ((Value_t)( 0.00))
-#define itg3205_y_fact ((Value_t)(-0.001214))
-#define itg3205_y_offs ((Value_t)( 0.00))
-#define itg3205_z_fact ((Value_t)(-0.001214))
-#define itg3205_z_offs ((Value_t)( 0.00))
-#define itg3205_temp_fact ((Value_t)( 0.003571))
-#define itg3205_temp_offs ((Value_t)( 83.5 ))
-
-#define bmp085_pressure_fact ((Value_t)( 1.0))
-#define bmp085_pressure_offs ((Value_t)( 300.0))
-#define bmp085_temp_fact ((Value_t)( 0.1))
-#define bmp085_temp_offs ((Value_t)(-2.0))
-
 }  // namespace ninedof
+
 #endif

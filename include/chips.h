@@ -42,7 +42,7 @@ extern const int bmp085_address;
 
 template<class Device>
 struct Chip {
-  virtual void initialize() = 0;
+  virtual void initialize(std::string calibration_file="") {}
   virtual void poll() = 0;
   virtual void finalize() = 0;
   const Sample_t& data() const { return data_; }
@@ -50,7 +50,7 @@ struct Chip {
   int chip_id() { return chip_id_; }
   int chip_version() { return chip_version_; }
   Chip(typename Device::Bus_type& bus, const int address, bool little_endian): 
-      device_(bus, address, little_endian), data_(), history_(),
+      device_(bus, address, little_endian), calibration_(), data_(), history_(),
       chip_id_(0), chip_version_(0) {}
 protected:
   Chip& push_sample(const Sample_t& sample) {
@@ -68,8 +68,10 @@ protected:
   void set_chip_id(const int value) { chip_id_ = value; }
   void set_chip_version(const int value) { chip_version_ = value; }
   Device& device() { return device_; }
+  Calibration& calibration() { return calibration_; }
 private:
   Device device_;
+  Calibration calibration_;
   Sample_t data_;
   Samples_t history_;
   int chip_id_;
@@ -83,7 +85,7 @@ private:
 
 template<class Device>
 struct HMC5843T: public Chip<Device> {
-  virtual void initialize() {
+  virtual void initialize(std::string calibration_file="") {
     // 20Hz output, no bias
     this->device().write_byte(0x00, 0x14);
     // 1 Gauss range
@@ -96,10 +98,12 @@ struct HMC5843T: public Chip<Device> {
     //if (ready) {
     Words words = this->device().read_words(0x03, 3);
     Sample_t sample = Sample_t(Vector_t(
-        static_cast<Value_t>(static_cast<int16_t>(words[1])) * hmc5843_x_fact + hmc5843_x_offs,
-        static_cast<Value_t>(static_cast<int16_t>(words[0])) * hmc5843_y_fact + hmc5843_y_offs,
-        static_cast<Value_t>(static_cast<int16_t>(words[2])) * hmc5843_z_fact + hmc5843_z_offs
-    ));
+        static_cast<Value_t>(static_cast<int16_t>(words[1])),
+        static_cast<Value_t>(static_cast<int16_t>(words[0])),
+        static_cast<Value_t>(static_cast<int16_t>(words[2]))),
+        0,
+        this->calibration(),
+    );
     this->push_sample(sample);
     //}
   }
@@ -123,7 +127,7 @@ typedef HMC5883T<I2C_device> HMC5883;
 
 template<class Device>
 struct ADXL345T: public Chip<Device> {
-  virtual void initialize() {
+  virtual void initialize(std::string filename="") {
     // Clear the sleep bit (when it was set)
     this->device().write_byte(0x2D, 0x00);
     // Enable measure bit (get out of standby)
@@ -136,10 +140,12 @@ struct ADXL345T: public Chip<Device> {
   virtual void poll() {
     Words words = this->device().read_words(0x32, 3);
     Sample_t sample = Sample_t(Vector_t(
-        static_cast<Value_t>(static_cast<int16_t>(words[0])) * adxl345_x_fact + adxl345_x_offs,
-        static_cast<Value_t>(static_cast<int16_t>(words[1])) * adxl345_y_fact + adxl345_y_offs,
-        static_cast<Value_t>(static_cast<int16_t>(words[2])) * adxl345_z_fact + adxl345_z_offs 
-    ));
+        static_cast<Value_t>(static_cast<int16_t>(words[0])),
+        static_cast<Value_t>(static_cast<int16_t>(words[1])),
+        static_cast<Value_t>(static_cast<int16_t>(words[2]))),
+        0,
+        this->calibration()
+    );
     this->push_sample(sample);
   }
   virtual void finalize() {
@@ -156,7 +162,7 @@ typedef ADXL345T<I2C_device> ADXL345;
 
 template<class Device>
 struct BMA180T: public Chip<Device> {
-  virtual void initialize() {
+  virtual void initialize(std::string filename="") {
 
     // Start by soft resetting the device
     this->device().write_byte(0x10, 0xB6);
@@ -195,10 +201,12 @@ struct BMA180T: public Chip<Device> {
     int16_t y = static_cast<int16_t>(xyz[1]) >> 2;
     int16_t z = static_cast<int16_t>(xyz[2]) >> 2;
     Sample_t sample = Sample_t(Vector_t(
-        static_cast<Value_t>(x) * bma180_x_fact + bma180_x_offs,
-        static_cast<Value_t>(y) * bma180_y_fact + bma180_y_offs,
-        static_cast<Value_t>(z) * bma180_z_fact + bma180_z_offs 
-    ), static_cast<Value_t>(static_cast<int8_t>(temp)) * bma180_temp_fact + bma180_temp_offs);
+        static_cast<Value_t>(x),
+        static_cast<Value_t>(y),
+        static_cast<Value_t>(z)),
+        static_cast<Value_t>(static_cast<int8_t>(temp)),
+        this->calibration()
+    );
     this->push_sample(sample);
   }
   virtual void finalize() {
@@ -213,7 +221,7 @@ typedef BMA180T<I2C_device> BMA180;
 
 template<class Device>
 struct ITG3200T: public Chip<Device> {
-  virtual void initialize() {
+  virtual void initialize(std::string filename="") {
     // First reset the chip
     this->device().write_byte(0x3E, 0x80);
     // Wait a little for it to come back up
@@ -228,10 +236,11 @@ struct ITG3200T: public Chip<Device> {
   virtual void poll() {
     Words words = this->device().read_words(0x1B, 4);
     Sample_t sample = Sample_t(Vector_t(
-        static_cast<Value_t>(static_cast<int16_t>(words[1])) * itg3200_x_fact + itg3200_x_offs,
-        static_cast<Value_t>(static_cast<int16_t>(words[2])) * itg3200_y_fact + itg3200_y_offs,
-        static_cast<Value_t>(static_cast<int16_t>(words[3])) * itg3200_z_fact + itg3200_z_offs
-      ), static_cast<Value_t>(static_cast<int16_t>(words[0])) * itg3200_temp_fact + itg3200_temp_offs
+        static_cast<Value_t>(static_cast<int16_t>(words[1])),
+        static_cast<Value_t>(static_cast<int16_t>(words[2])),
+        static_cast<Value_t>(static_cast<int16_t>(words[3]))),
+        static_cast<Value_t>(static_cast<int16_t>(words[0]))
+        this->calibration()
     ); 
     this->push_sample(sample);
   }
@@ -255,7 +264,7 @@ typedef ITG3205T<I2C_device> ITG3205;
 
 template<class Device>
 struct BMP085T: public Chip<Device> {
-  virtual void initialize() {
+  virtual void initialize(std::string filename="") {
     // Read calibration data from EEPROM
     Words words = this->device().read_words(0xAA, 11);
     set_calibration_data(words);
@@ -278,8 +287,9 @@ struct BMP085T: public Chip<Device> {
       pressure >>= (8 - oss_);
       pressure = eval_pressure(pressure);
       Sample_t sample = Sample_t(Vector_t(
-          0, 0, static_cast<Value_t>(pressure) * bmp085_pressure_fact + bmp085_pressure_offs), 
-          static_cast<Value_t>(temp_) * bmp085_temp_fact + bmp085_temp_offs); 
+          0, 0, static_cast<Value_t>(pressure)), 
+          static_cast<Value_t>(temp_),
+          this->calibration()); 
       this->push_sample(sample);
     }
     loop_count_++;
