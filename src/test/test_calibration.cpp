@@ -8,6 +8,8 @@
 
 #include <boost/filesystem.hpp>
 
+#include "boost_copy_file.h"
+
 #include "../../include/types.h"
 #include "../../include/calibration.h"
 
@@ -18,14 +20,29 @@ boost::filesystem::path app_path;
 
 class CalibrationTest: public CppUnit::TestFixture {
   void testLoad() {
-    Calibration calibration = load_calibration(app_path / "calibration/test.ini", "test");
+    Calibration calibration = load_calibration(app_path/"calibration/test.ini", "test");
     CPPUNIT_ASSERT_EQUAL((Value_t)8.8, calibration.x_factor);
   }
   void testLoadNonExisting() {
+    Calibration calibration = load_calibration(app_path/"calibration/nonexisting.ini", "test");
+    CPPUNIT_ASSERT_EQUAL((Value_t)1.0, calibration.x_factor);
   }
   void testSave() {
+    Calibration calibration;
+    calibration.x_factor = 1.1;
+    save_calibration(app_path / "calibration/temp.ini", "test", calibration);
+    calibration = load_calibration(app_path/"calibration/temp.ini", "test");
+    CPPUNIT_ASSERT_EQUAL((Value_t)1.1, calibration.x_factor);
   }
   void testSaveExisting() {
+    test_utils::copy_file(app_path/"calibration/test.ini", app_path/"calibration/copy.ini");
+    Calibration calibration;
+    calibration.x_factor = 2.2;
+    save_calibration(app_path / "calibration/copy.ini", "test_copy", calibration);
+    calibration = load_calibration(app_path/"calibration/copy.ini", "test");
+    CPPUNIT_ASSERT_EQUAL((Value_t)8.8, calibration.x_factor);
+    calibration = load_calibration(app_path/"calibration/copy.ini", "test_copy");
+    CPPUNIT_ASSERT_EQUAL((Value_t)2.2, calibration.x_factor);
   }
 public:
   CPPUNIT_TEST_SUITE(CalibrationTest);
