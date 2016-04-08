@@ -6,6 +6,7 @@ d := $(dir $(lastword $(MAKEFILE_LIST)))
 TEST_SOURCES := $(wildcard $(d)*.cpp)
 TEST_TARGETS := $(patsubst %.cpp, %.run, $(TEST_SOURCES))
 TEST_RUN := $(patsubst %.run, %, $(TEST_TARGETS))
+CLEAN_TARGETS := $(CLEAN_TARGETS) $(d)calibration/temp.ini $(d)calibration/copy.ini
 
 EXTRA_SOURCES := $(d)boost_copy_file.cc
 EXTRA_OBJS := $(patsubst %.cc, %.o, $(EXTRA_SOURCES))

@@ -34,7 +34,7 @@ timeit: $(TARGETS)
 	time ./$<
 
 clean:
-	rm -f $(TARGETS) $(TEST_TARGETS) $(OBJS)
+	rm -f $(TARGETS) $(TEST_TARGETS) $(OBJS) $(CLEAN_TARGETS)
 
 include src/test/module.mk
 
