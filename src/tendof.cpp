@@ -31,7 +31,7 @@ void signal_handler(int sig) {
   quit = true;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
   signal(SIGINT, &signal_handler);
   cout << "10 DOF stick" << endl;
@@ -46,6 +46,15 @@ int main()
     busno = atoi(i2c_bus);
   }
   try {
+    boost::filesystem::path calibration_file;
+    if (argc > 1) {
+      calibration_file = argv[1];
+    }
+    else {
+      cout << "Usage: tendof <calibration_file>" << endl;
+      return 1;
+    }
+
     I2C_bus bus(busno);
 
     HMC5843 compass(bus);
@@ -53,10 +62,10 @@ int main()
     ITG3205 gyro(bus);
     BMP085 pressure(bus);
 
-    compass.initialize();
-    acceleration.initialize();
-    gyro.initialize();
-    pressure.initialize();
+    compass.initialize(calibration_file);
+    acceleration.initialize(calibration_file);
+    gyro.initialize(calibration_file);
+    pressure.initialize(calibration_file);
 
     cout << "BMA180: " << acceleration.chip_id() << " " << acceleration.chip_version() << endl;
 

@@ -43,6 +43,13 @@ class CalibrationTest: public CppUnit::TestFixture {
     CPPUNIT_ASSERT_EQUAL((Value)2.2, calibration.x_factor());
   }
 public:
+  virtual void setUp() {
+    boost::filesystem::remove(app_path/"calibration/copy.ini");
+    boost::filesystem::remove(app_path/"calibration/temp.ini");
+  }
+  virtual void tearDown() {
+  }
+public:
   CPPUNIT_TEST_SUITE(CalibrationTest);
   CPPUNIT_TEST(testLoad);
   CPPUNIT_TEST(testLoadNonExisting);

@@ -31,7 +31,7 @@ void signal_handler(int sig) {
   quit = true;
 }
 
-int main()
+int main(int argc, char* argv[])
 {
   signal(SIGINT, &signal_handler);
   cout << "Sparkfun 9 DOF stick" << endl;
@@ -48,13 +48,17 @@ int main()
   try {
     I2C_bus bus(busno);
 
+    boost::filesystem::path calibration_file = argv[0];
+    calibration_file.remove_filename();
+    calibration_file /= "calibration/9dof.ini";
+
     HMC5843 compass(bus);
     ADXL345 acceleration(bus);
     ITG3200 gyro(bus);
 
-    compass.initialize();
-    acceleration.initialize();
-    gyro.initialize();
+    compass.initialize(calibration_file);
+    acceleration.initialize(calibration_file);
+    gyro.initialize(calibration_file);
 
     int wait = 1000;
     char *sample_rate = getenv("NINEDOF_SAMPLE_RATE");

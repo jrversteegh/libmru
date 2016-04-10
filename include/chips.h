@@ -24,6 +24,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <chrono>
 #include <thread>
 
+#include <boost/filesystem.hpp>
+
 #include "types.h"
 #include "i2cbus.h"
 #include "calibration.h"
@@ -42,7 +44,13 @@ extern const int bmp085_address;
 
 template<class Device>
 struct Chip {
-  virtual void initialize(std::string calibration_file="") {}
+  virtual std::string chip_name() { return "unknown"; }
+  virtual void initialize(const std::string& calibration_file="") {
+    calibration_ = load_calibration(calibration_file, chip_name());
+  }
+  void initialize(const boost::filesystem::path& calibration_file) {
+    initialize(calibration_file.string());
+  }
   virtual void poll() = 0;
   virtual void finalize() = 0;
   const Sample& data() const { return data_; }
@@ -85,7 +93,9 @@ private:
 
 template<class Device>
 struct HMC5843T: public Chip<Device> {
-  virtual void initialize(std::string calibration_file="") {
+  virtual std::string chip_name() { return "hmc5843"; }
+  virtual void initialize(const std::string& calibration_file="") {
+    Chip<Device>::initialize(calibration_file);
     // 20Hz output, no bias
     this->device().write_byte(0x00, 0x14);
     // 1 Gauss range
@@ -93,6 +103,7 @@ struct HMC5843T: public Chip<Device> {
     // Continuous data aquisition
     this->device().write_byte(0x02, 0x00);
   }
+  using Chip<Device>::initialize;
   virtual void poll() {
     //Byte ready = this->device().read_byte(0x09) & 0x01;
     //if (ready) {
@@ -119,6 +130,7 @@ typedef HMC5843T<I2C_device> HMC5843;
 
 template<class Device>
 struct HMC5883T: public HMC5843T<Device> {
+  virtual std::string chip_name() { return "hmc5883"; }
   HMC5883T(typename Device::Bus_type& bus, const int address): HMC5843T<Device>(bus, address) {}
   HMC5883T(typename Device::Bus_type& bus): HMC5843T<Device>(bus, hmc5883_address) {}
 };
@@ -127,7 +139,9 @@ typedef HMC5883T<I2C_device> HMC5883;
 
 template<class Device>
 struct ADXL345T: public Chip<Device> {
-  virtual void initialize(std::string filename="") {
+  virtual std::string chip_name() { return "adxl345"; }
+  virtual void initialize(const std::string& calibration_file="") {
+    Chip<Device>::initialize(calibration_file);
     // Clear the sleep bit (when it was set)
     this->device().write_byte(0x2D, 0x00);
     // Enable measure bit (get out of standby)
@@ -137,6 +151,7 @@ struct ADXL345T: public Chip<Device> {
     // scale is 4mg/bit
     this->device().write_byte(0x31, 0x0B);
   }
+  using Chip<Device>::initialize;
   virtual void poll() {
     Words words = this->device().read_words(0x32, 3);
     Sample sample = Sample(Vector(
@@ -162,7 +177,9 @@ typedef ADXL345T<I2C_device> ADXL345;
 
 template<class Device>
 struct BMA180T: public Chip<Device> {
-  virtual void initialize(std::string filename="") {
+  virtual std::string chip_name() { return "bma180"; }
+  virtual void initialize(const std::string& calibration_file="") {
+    Chip<Device>::initialize(calibration_file);
 
     // Start by soft resetting the device
     this->device().write_byte(0x10, 0xB6);
@@ -193,6 +210,7 @@ struct BMA180T: public Chip<Device> {
     this->set_chip_id(this->device().read_byte(0x00));
     this->set_chip_version(this->device().read_byte(0x01));
   }
+  using Chip<Device>::initialize;
   virtual void poll() {
     Words xyz = this->device().read_words(0x02, 3);
     Byte temp = this->device().read_byte(0x08);
@@ -221,7 +239,9 @@ typedef BMA180T<I2C_device> BMA180;
 
 template<class Device>
 struct ITG3200T: public Chip<Device> {
-  virtual void initialize(std::string filename="") {
+  virtual std::string chip_name() { return "itg3200"; }
+  virtual void initialize(const std::string& calibration_file="") {
+    Chip<Device>::initialize(calibration_file);
     // First reset the chip
     this->device().write_byte(0x3E, 0x80);
     // Wait a little for it to come back up
@@ -233,6 +253,7 @@ struct ITG3200T: public Chip<Device> {
     // Get out of sleep and select PLL with X Gyro reference as clock
     this->device().write_byte(0x3E, 0x01);
   }
+  using Chip<Device>::initialize;
   virtual void poll() {
     Words words = this->device().read_words(0x1B, 4);
     Sample sample(Vector(
@@ -256,6 +277,7 @@ typedef ITG3200T<I2C_device> ITG3200;
 
 template<class Device>
 struct ITG3205T: public ITG3200T<Device> {
+  virtual std::string chip_name() { return "itg3205"; }
   ITG3205T(typename Device::Bus_type& bus, const int address): ITG3200T<Device>(bus, address) {}
   ITG3205T(typename Device::Bus_type& bus): ITG3200T<Device>(bus, itg3205_address) {}
 };
@@ -264,11 +286,14 @@ typedef ITG3205T<I2C_device> ITG3205;
 
 template<class Device>
 struct BMP085T: public Chip<Device> {
-  virtual void initialize(std::string filename="") {
+  virtual std::string chip_name() { return "bmp085"; }
+  virtual void initialize(const std::string& calibration_file="") {
+    Chip<Device>::initialize(calibration_file);
     // Read calibration data from EEPROM
     Words words = this->device().read_words(0xAA, 11);
     set_calibration_data(words);
   }
+  using Chip<Device>::initialize;
   virtual void poll() {
     if (loop_count_ % 120 == 0) {
       loop_count_ = 0;
