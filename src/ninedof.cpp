@@ -16,7 +16,7 @@ using namespace ninedof;
 using namespace std;
 using namespace std::chrono;
 
-ostream& operator<<(ostream& o, const Vector_t& v) {
+ostream& operator<<(ostream& o, const Vector& v) {
   o << fixed << setprecision(3);
   o << setw(8) << v.x();
   o << setw(8) << v.y();

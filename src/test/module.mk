@@ -13,7 +13,7 @@ TEST_EXTRA_OBJS := $(patsubst %.cc, %.o, $(TEST_EXTRA_SOURCES))
 CLEAN_TARGETS := $(CLEAN_TARGETS) $(d)calibration/temp.ini $(d)calibration/copy.ini $(TEST_EXTRA_OBJS)
 
 $(TEST_EXTRA_OBJS): $(TEST_EXTRA_SOURCES) 
-	g++ -c -O2 -o $@ $^    
+	g++ -g -c -o $@ $^    
 
 $(d)test_%.run: $(d)test_%.cpp $(OBJS) $(TEST_EXTRA_OBJS)
 	g++ $(CFLAGS) -o $@ $< $(OBJS) $(TEST_EXTRA_OBJS) -lcppunit $(LIBS)  

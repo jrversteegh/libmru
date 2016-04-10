@@ -45,21 +45,21 @@ struct Chip {
   virtual void initialize(std::string calibration_file="") {}
   virtual void poll() = 0;
   virtual void finalize() = 0;
-  const Sample_t& data() const { return data_; }
-  const Samples_t& history() const { return history_; }
+  const Sample& data() const { return data_; }
+  const Samples& history() const { return history_; }
   int chip_id() { return chip_id_; }
   int chip_version() { return chip_version_; }
   Chip(typename Device::Bus_type& bus, const int address, bool little_endian): 
       device_(bus, address, little_endian), calibration_(), data_(), history_(),
       chip_id_(0), chip_version_(0) {}
 protected:
-  Chip& push_sample(const Sample_t& sample) {
+  Chip& push_sample(const Sample& sample) {
     data_ = sample;
     history_.push_back(data_);
     trim_history();
     return *this;
   }
-  Chip& push_sample(Sample_t&& sample) {
+  Chip& push_sample(Sample&& sample) {
     data_ = sample;
     history_.push_back(data_);
     trim_history();
@@ -72,8 +72,8 @@ protected:
 private:
   Device device_;
   Calibration calibration_;
-  Sample_t data_;
-  Samples_t history_;
+  Sample data_;
+  Samples history_;
   int chip_id_;
   int chip_version_;
   void trim_history() {
@@ -97,12 +97,12 @@ struct HMC5843T: public Chip<Device> {
     //Byte ready = this->device().read_byte(0x09) & 0x01;
     //if (ready) {
     Words words = this->device().read_words(0x03, 3);
-    Sample_t sample = Sample_t(Vector_t(
-        static_cast<Value_t>(static_cast<int16_t>(words[1])),
-        static_cast<Value_t>(static_cast<int16_t>(words[0])),
-        static_cast<Value_t>(static_cast<int16_t>(words[2]))),
+    Sample sample(Vector(
+        static_cast<Value>(static_cast<int16_t>(words[1])),
+        static_cast<Value>(static_cast<int16_t>(words[0])),
+        static_cast<Value>(static_cast<int16_t>(words[2]))),
         0,
-        this->calibration(),
+        this->calibration()
     );
     this->push_sample(sample);
     //}
@@ -139,10 +139,10 @@ struct ADXL345T: public Chip<Device> {
   }
   virtual void poll() {
     Words words = this->device().read_words(0x32, 3);
-    Sample_t sample = Sample_t(Vector_t(
-        static_cast<Value_t>(static_cast<int16_t>(words[0])),
-        static_cast<Value_t>(static_cast<int16_t>(words[1])),
-        static_cast<Value_t>(static_cast<int16_t>(words[2]))),
+    Sample sample = Sample(Vector(
+        static_cast<Value>(static_cast<int16_t>(words[0])),
+        static_cast<Value>(static_cast<int16_t>(words[1])),
+        static_cast<Value>(static_cast<int16_t>(words[2]))),
         0,
         this->calibration()
     );
@@ -200,11 +200,11 @@ struct BMA180T: public Chip<Device> {
     int16_t x = static_cast<int16_t>(xyz[0]) >> 2;
     int16_t y = static_cast<int16_t>(xyz[1]) >> 2;
     int16_t z = static_cast<int16_t>(xyz[2]) >> 2;
-    Sample_t sample = Sample_t(Vector_t(
-        static_cast<Value_t>(x),
-        static_cast<Value_t>(y),
-        static_cast<Value_t>(z)),
-        static_cast<Value_t>(static_cast<int8_t>(temp)),
+    Sample sample = Sample(Vector(
+        static_cast<Value>(x),
+        static_cast<Value>(y),
+        static_cast<Value>(z)),
+        static_cast<Value>(static_cast<int8_t>(temp)),
         this->calibration()
     );
     this->push_sample(sample);
@@ -235,11 +235,11 @@ struct ITG3200T: public Chip<Device> {
   }
   virtual void poll() {
     Words words = this->device().read_words(0x1B, 4);
-    Sample_t sample = Sample_t(Vector_t(
-        static_cast<Value_t>(static_cast<int16_t>(words[1])),
-        static_cast<Value_t>(static_cast<int16_t>(words[2])),
-        static_cast<Value_t>(static_cast<int16_t>(words[3]))),
-        static_cast<Value_t>(static_cast<int16_t>(words[0]))
+    Sample sample(Vector(
+        static_cast<Value>(static_cast<int16_t>(words[1])),
+        static_cast<Value>(static_cast<int16_t>(words[2])),
+        static_cast<Value>(static_cast<int16_t>(words[3]))),
+        static_cast<Value>(static_cast<int16_t>(words[0])),
         this->calibration()
     ); 
     this->push_sample(sample);
@@ -286,9 +286,9 @@ struct BMP085T: public Chip<Device> {
       int32_t pressure = (raw_pressure[0] << 16) + (raw_pressure[1] << 8) + raw_pressure[0];
       pressure >>= (8 - oss_);
       pressure = eval_pressure(pressure);
-      Sample_t sample = Sample_t(Vector_t(
-          0, 0, static_cast<Value_t>(pressure)), 
-          static_cast<Value_t>(temp_),
+      Sample sample = Sample(Vector(
+          0, 0, static_cast<Value>(pressure)), 
+          static_cast<Value>(temp_),
           this->calibration()); 
       this->push_sample(sample);
     }

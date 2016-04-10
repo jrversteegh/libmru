@@ -31,70 +31,95 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace ninedof {
 
-typedef boost::posix_time::ptime Time_t;
-inline Time_t utc_now() {
+typedef boost::posix_time::ptime Time;
+inline Time utc_now() {
   return boost::posix_time::microsec_clock::universal_time();
 }
 
-typedef float Value_t;
-typedef std::deque<Value_t> Values_t;
-typedef Values_t::iterator Value_i;
+typedef float Value;
+typedef std::deque<Value> Values;
+typedef Values::iterator Value_i;
 
-typedef CGAL::Simple_cartesian<Value_t>::Vector_3 Vector_t;
-typedef std::deque<Vector_t> Vectors_t;
-typedef Vectors_t::iterator Vector_i;
+typedef CGAL::Simple_cartesian<Value>::Vector_3 Vector;
+typedef std::deque<Vector> Vectors;
+typedef Vectors::iterator Vector_i;
 
-typedef struct Calibration {
-  Vector_t vector_factor;
-  Vector_t vector_offset;
-  Value_t value_factor;
-  Value_t value_offset;
+typedef CGAL::Simple_cartesian<Value>::Aff_transformation_3 Transformation;
+
+struct Vector_factor_offset: public Transformation {
+  using Transformation::Transformation;
+  Vector_factor_offset(const Value x_factor, const Value x_offset, 
+                       const Value y_factor, const Value y_offset,
+                       const Value z_factor, const Value z_offset):
+    Transformation(x_factor, 0, 0, x_offset,
+                   0, y_factor, 0, y_offset,
+                   0, 0, z_factor, z_offset) {}
+};
+
+struct Calibration {
+  Vector_factor_offset vector_transform;
+  Value value_factor;
+  Value value_offset;
   Calibration(): 
-      vector_factor(1.0,1.0,1.0), vector_offset(0.0, 0.0, 0.0),
+      vector_transform(1.0, 1.0, 1.0, 0.0, 0.0, 0.0),
       value_factor(1.0), value_offset(0.0) {}
   Calibration(const Calibration& calibration): 
-      vector_factor(calibration.vector_factor), vector_offset(calibration.vector_offset),
+      vector_transform(calibration.vector_transform),
       value_factor(calibration.value_factor), value_offset(calibration.value_offset) {}
-  Calibration(Calibration&& calibration): 
-      vector_factor(calibration.vector_factor), vector_offset(calibration.vector_offset),
-      value_factor(calibration.value_factor), value_offset(calibration.value_offset) {}
+  Calibration(const Value& x_factor, const Value& x_offset,
+              const Value& y_factor, const Value& y_offset,
+              const Value& z_factor, const Value& z_offset,
+              const Value& v_factor, const Value& v_offset):
+      vector_transform(x_factor, y_factor, z_factor,
+                       x_offset, y_offset, z_offset),
+      value_factor(v_factor), value_offset(v_offset) {}
   Calibration& operator=(const Calibration& calibration) {
-    vector_factor = calibration.vector_factor;
-    vector_offset = calibration.vector_offset;
+    vector_transform = calibration.vector_transform;
     value_factor = calibration.value_factor;
     value_offset = calibration.value_offset;
     return *this;
   }
-  Calibration& operator=(Calibration&& calibration) {
-    vector_factor = std::move(calibration.vector_factor);
-    vector_offset = std::move(calibration.vector_offset);
-    value_factor = std::move(calibration.value_factor);
-    value_offset = std::move(calibration.value_offset);
-    return *this;
+  Value x_factor() const { 
+    return vector_transform.m(0, 0);
   }
-} Calibration_t;
+  Value y_factor() const { 
+    return vector_transform.m(1, 1);
+  }
+  Value z_factor() const { 
+    return vector_transform.m(2, 2);
+  }
+  Value x_offset() const { 
+    return vector_transform.m(0, 3);
+  }
+  Value y_offset() const { 
+    return vector_transform.m(1, 3);
+  }
+  Value z_offset() const { 
+    return vector_transform.m(2, 3);
+  }
+};
 
-typedef struct Sample {
-  Time_t time;
-  Vector_t vector;
-  Value_t value;
+struct Sample {
+  Time time;
+  Vector vector;
+  Value value;
   Sample(): time(), vector(), value() {}
   Sample(const Sample& s): 
       time(s.time), vector(s.vector), value(s.value) {}
-  Sample(const Time_t& t, const Vector_t& vr): 
+  Sample(const Time& t, const Vector& vr): 
       time(t), vector(vr), value() {}
-  Sample(const Time_t& t, const Vector_t& vr, const Value_t& v): 
+  Sample(const Time& t, const Vector& vr, const Value& v): 
       time(t), vector(vr), value(v) {}
-  Sample(const Vector_t& vr): 
+  Sample(const Vector& vr): 
       time(utc_now()), vector(vr), value() {}
-  Sample(const Vector_t& vr, const Value_t& v): 
+  Sample(const Vector& vr, const Value& v): 
       time(utc_now()), vector(vr), value(v) {}
   Sample(Sample&& s): 
       time(std::move(s.time)), vector(std::move(s.vector)), value(std::move(s.value)) {}
-  Sample(const Time_t& t, const Vector_t& vr,
-         const Value_t& v, const Calibration& cal):
-      time(t) {
-    vector = vr * cal.vector_factor + cal.vector_offset;
+  Sample(const Vector& vr,
+         const Value& v, const Calibration& cal):
+      time(utc_now()) {
+    vector = vr.transform(cal.vector_transform);
     value = v * cal.value_factor + cal.value_offset;
   }
   Sample& operator=(const Sample& s) {
@@ -109,9 +134,9 @@ typedef struct Sample {
     value = std::move(s.value);
     return *this;
   }
-} Sample_t;
-typedef std::deque<Sample_t> Samples_t;
-typedef Samples_t::iterator Sample_i;
+};
+typedef std::deque<Sample> Samples;
+typedef Samples::iterator Sample_i;
 
 
 } //namespace ninedof

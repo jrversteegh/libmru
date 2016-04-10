@@ -27,8 +27,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 namespace ninedof {
 
-extern Calibration&& load_calibration(const std::string& filename, const std::string& section);
-extern Calibration&& load_calibration(const boost::filesystem::path& filename, const std::string& section);
+extern Calibration load_calibration(const std::string& filename, const std::string& section);
+extern Calibration load_calibration(const boost::filesystem::path& filename, const std::string& section);
 extern void save_calibration(const std::string& filename, const std::string& section,
                              const Calibration& calibration);
 extern void save_calibration(const boost::filesystem::path& filename, const std::string& section,
