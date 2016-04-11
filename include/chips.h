@@ -108,7 +108,7 @@ struct HMC5843T: public Chip<Device> {
     //Byte ready = this->device().read_byte(0x09) & 0x01;
     //if (ready) {
     Words words = this->device().read_words(0x03, 3);
-    Sample sample(Vector(
+    Sample sample(Point(
         static_cast<Value>(static_cast<int16_t>(words[1])),
         static_cast<Value>(static_cast<int16_t>(words[0])),
         static_cast<Value>(static_cast<int16_t>(words[2]))),
@@ -154,7 +154,7 @@ struct ADXL345T: public Chip<Device> {
   using Chip<Device>::initialize;
   virtual void poll() {
     Words words = this->device().read_words(0x32, 3);
-    Sample sample = Sample(Vector(
+    Sample sample = Sample(Point(
         static_cast<Value>(static_cast<int16_t>(words[0])),
         static_cast<Value>(static_cast<int16_t>(words[1])),
         static_cast<Value>(static_cast<int16_t>(words[2]))),
@@ -218,7 +218,7 @@ struct BMA180T: public Chip<Device> {
     int16_t x = static_cast<int16_t>(xyz[0]) >> 2;
     int16_t y = static_cast<int16_t>(xyz[1]) >> 2;
     int16_t z = static_cast<int16_t>(xyz[2]) >> 2;
-    Sample sample = Sample(Vector(
+    Sample sample = Sample(Point(
         static_cast<Value>(x),
         static_cast<Value>(y),
         static_cast<Value>(z)),
@@ -256,7 +256,7 @@ struct ITG3200T: public Chip<Device> {
   using Chip<Device>::initialize;
   virtual void poll() {
     Words words = this->device().read_words(0x1B, 4);
-    Sample sample(Vector(
+    Sample sample(Point(
         static_cast<Value>(static_cast<int16_t>(words[1])),
         static_cast<Value>(static_cast<int16_t>(words[2])),
         static_cast<Value>(static_cast<int16_t>(words[3]))),
@@ -311,7 +311,7 @@ struct BMP085T: public Chip<Device> {
       int32_t pressure = (raw_pressure[0] << 16) + (raw_pressure[1] << 8) + raw_pressure[0];
       pressure >>= (8 - oss_);
       pressure = eval_pressure(pressure);
-      Sample sample = Sample(Vector(
+      Sample sample = Sample(Point(
           0, 0, static_cast<Value>(pressure)), 
           static_cast<Value>(temp_),
           this->calibration()); 
