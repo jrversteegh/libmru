@@ -48,9 +48,9 @@ typedef CGAL::Simple_cartesian<Value>::Aff_transformation_3 Transformation;
 
 struct Vector_factor_offset: public Transformation {
   using Transformation::Transformation;
-  Vector_factor_offset(const Value x_factor, const Value x_offset, 
-                       const Value y_factor, const Value y_offset,
-                       const Value z_factor, const Value z_offset):
+  Vector_factor_offset(const Value& x_factor, const Value& x_offset, 
+                       const Value& y_factor, const Value& y_offset,
+                       const Value& z_factor, const Value& z_offset):
     Transformation(x_factor, 0, 0, x_offset,
                    0, y_factor, 0, y_offset,
                    0, 0, z_factor, z_offset) {}
@@ -61,7 +61,7 @@ struct Calibration {
   Value value_factor;
   Value value_offset;
   Calibration(): 
-      vector_transform(1.0, 1.0, 1.0, 0.0, 0.0, 0.0),
+      vector_transform(1.0, 0.0, 1.0, 0.0, 1.0, 0.0),
       value_factor(1.0), value_offset(0.0) {}
   Calibration(const Calibration& calibration): 
       vector_transform(calibration.vector_transform),
@@ -70,8 +70,7 @@ struct Calibration {
               const Value& y_factor, const Value& y_offset,
               const Value& z_factor, const Value& z_offset,
               const Value& v_factor, const Value& v_offset):
-      vector_transform(x_factor, y_factor, z_factor,
-                       x_offset, y_offset, z_offset),
+      vector_transform(x_factor, x_offset, y_factor, y_offset, z_factor, y_offset),
       value_factor(v_factor), value_offset(v_offset) {}
   Calibration& operator=(const Calibration& calibration) {
     vector_transform = calibration.vector_transform;
@@ -119,7 +118,7 @@ struct Sample {
   Sample(const Vector& vr,
          const Value& v, const Calibration& cal):
       time(utc_now()) {
-    vector = vr.transform(cal.vector_transform);
+    vector = cal.vector_transform(vr);
     value = v * cal.value_factor + cal.value_offset;
   }
   Sample& operator=(const Sample& s) {
