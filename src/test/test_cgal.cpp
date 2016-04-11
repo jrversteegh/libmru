@@ -14,6 +14,8 @@ using namespace CGAL;
 
 typedef Simple_cartesian<float> K;
 typedef K::Vector_3 Vector;
+typedef K::Point_3 Point;
+typedef K::Aff_transformation_3 Transformation;
 
 class CGALTest: public CppUnit::TestFixture {
   void testVectorArithmetic() {
@@ -28,10 +30,20 @@ class CGALTest: public CppUnit::TestFixture {
     os << v1;
     CPPUNIT_ASSERT_EQUAL(string("1.1 2 3"), os.str());
   }
+  void testTransform() {
+    Point p1(1, 1, 1);
+    Transformation tranformation(
+        2, 0, 0, 3,
+        0, 3, 0, 4,
+        0, 0, 4, 5);
+    Point p2 = tranformation(p1);
+    CPPUNIT_ASSERT_EQUAL(Point(5, 7, 9), p2);
+  }
 public:
   CPPUNIT_TEST_SUITE(CGALTest);
   CPPUNIT_TEST(testVectorArithmetic);
   CPPUNIT_TEST(testOutput);
+  CPPUNIT_TEST(testTransform);
   CPPUNIT_TEST_SUITE_END();
 };
 
