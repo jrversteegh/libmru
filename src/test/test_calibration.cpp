@@ -27,6 +27,8 @@ class CalibrationTest: public CppUnit::TestFixture {
     CPPUNIT_ASSERT_EQUAL((Value)99, calibration.y_offset());
     CPPUNIT_ASSERT_EQUAL((Value)880, calibration.z_factor());
     CPPUNIT_ASSERT_EQUAL((Value)990, calibration.z_offset());
+    CPPUNIT_ASSERT_EQUAL((Value)8800, calibration.v_factor());
+    CPPUNIT_ASSERT_EQUAL((Value)9900, calibration.v_offset());
   }
   void testLoadNonExisting() {
     Calibration calibration = load_calibration(app_path/"calibration/nonexisting.ini", "test");

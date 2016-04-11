@@ -70,7 +70,7 @@ struct Calibration {
               const Value& y_factor, const Value& y_offset,
               const Value& z_factor, const Value& z_offset,
               const Value& v_factor, const Value& v_offset):
-      vector_transform(x_factor, x_offset, y_factor, y_offset, z_factor, y_offset),
+      vector_transform(x_factor, x_offset, y_factor, y_offset, z_factor, z_offset),
       value_factor(v_factor), value_offset(v_offset) {}
   Calibration& operator=(const Calibration& calibration) {
     vector_transform = calibration.vector_transform;
@@ -81,20 +81,26 @@ struct Calibration {
   Value x_factor() const { 
     return vector_transform.m(0, 0);
   }
-  Value y_factor() const { 
-    return vector_transform.m(1, 1);
-  }
-  Value z_factor() const { 
-    return vector_transform.m(2, 2);
-  }
   Value x_offset() const { 
     return vector_transform.m(0, 3);
+  }
+  Value y_factor() const { 
+    return vector_transform.m(1, 1);
   }
   Value y_offset() const { 
     return vector_transform.m(1, 3);
   }
+  Value z_factor() const { 
+    return vector_transform.m(2, 2);
+  }
   Value z_offset() const { 
     return vector_transform.m(2, 3);
+  }
+  Value v_factor() const { 
+    return value_factor;
+  }
+  Value v_offset() const { 
+    return value_offset;
   }
 };
 
