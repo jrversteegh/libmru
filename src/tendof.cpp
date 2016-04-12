@@ -57,7 +57,7 @@ int main(int argc, char* argv[])
 
     I2C_bus bus(busno);
 
-    HMC5843 compass(bus);
+    HMC5883 compass(bus);
     BMA180 acceleration(bus);
     ITG3205 gyro(bus);
     BMP085 pressure(bus);
