@@ -53,6 +53,12 @@ struct Correction: public Transformation {
     Transformation(x_factor, 0, 0, x_offset,
                    0, y_factor, 0, y_offset,
                    0, 0, z_factor, z_offset) {}
+  Correction(const Value& xx_factor, const Value& xy_factor, const Value& xz_factor, const Value& x_offset, 
+             const Value& yx_factor, const Value& yy_factor, const Value& yz_factor, const Value& y_offset,
+             const Value& zx_factor, const Value& zy_factor, const Value& zz_factor, const Value& z_offset):
+    Transformation(xx_factor, xy_factor, xz_factor, x_offset,
+                   yx_factor, yy_factor, yz_factor, y_offset,
+                   zx_factor, zy_factor, zz_factor, z_offset) {}
 };
 
 struct Calibration {
@@ -70,6 +76,14 @@ struct Calibration {
               const Value& z_factor, const Value& z_offset,
               const Value& v_factor, const Value& v_offset):
       correction(x_factor, x_offset, y_factor, y_offset, z_factor, z_offset),
+      value_factor(v_factor), value_offset(v_offset) {}
+  Calibration(const Value& xx_factor, const Value& xy_factor, const Value& xz_factor, const Value& x_offset,
+              const Value& yx_factor, const Value& yy_factor, const Value& yz_factor, const Value& y_offset,
+              const Value& zx_factor, const Value& zy_factor, const Value& zz_factor, const Value& z_offset,
+              const Value& v_factor, const Value& v_offset):
+      correction(xx_factor, xy_factor, xz_factor, x_offset, 
+                 yx_factor, yy_factor, yz_factor, y_offset, 
+                 zx_factor, zy_factor, zz_factor, z_offset),
       value_factor(v_factor), value_offset(v_offset) {}
   Calibration& operator=(const Calibration& calibration) {
     correction = calibration.correction;

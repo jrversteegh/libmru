@@ -109,8 +109,8 @@ struct HMC5843T: public Chip<Device> {
     //if (ready) {
     Words words = this->device().read_words(0x03, 3);
     Sample sample(Point(
-        static_cast<Value>(static_cast<int16_t>(words[1])),
         static_cast<Value>(static_cast<int16_t>(words[0])),
+        static_cast<Value>(static_cast<int16_t>(words[1])),
         static_cast<Value>(static_cast<int16_t>(words[2]))),
         0,
         this->calibration()
