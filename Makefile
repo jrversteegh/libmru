@@ -1,4 +1,4 @@
-TARGETS := ninedof tendof
+TARGETS := output/ninedof output/tendof
 LIBS := -lCGAL -lboost_system -lboost_filesystem
 # Rounding math required by CGAL
 # CFLAGS := -frounding-math -std=c++11 -O2 
@@ -7,36 +7,42 @@ CFLAGS := -frounding-math -std=c++11 -g
 SOURCES := $(wildcard src/*.cc)
 HEADERS := $(wildcard include/*.h)
 DEFINES := -DCGAL_NDEBUG
-OBJS := $(patsubst %.cc, %.o, $(SOURCES))
+OBJS := $(patsubst src/%.cc, objs/%.o, $(SOURCES))
 
 
 all: $(TARGETS)
 	
-.PRECIOUS: %.o
-%.o: %.cc $(HEADERS) Makefile
+.PRECIOUS: objs/%.o
+objs/%.o: %.cc $(HEADERS) Makefile objs
 	g++ -c $(CFLAGS) $(DEFINES) -o $@ $< 
 
-%.o: %.cpp $(HEADERS) Makefile
+objs/%.obj: %.cpp $(HEADERS) Makefile objs
 	g++ -c $(CFLAGS) $(DEFINES) -o $@ $<
 
 
-%: src/%.o Makefile $(OBJS) 
+output/%: objs/%.obj Makefile $(OBJS) output 
 	g++ -o $@ $< $(OBJS) $(LIBS) 
+
+output:
+	mkdir -p output
+
+objs:
+	mkdir -p objs
 
 run: $(TARGETS)
 	./$<
 
-run9: ninedof
+run9: output/ninedof
 	./$<
 
-run10: tendof
+run10: output/tendof
 	./$<
 
 timeit: $(TARGETS)
 	time ./$<
 
 clean:
-	rm -f $(TARGETS) $(TEST_TARGETS) $(OBJS) $(CLEAN_TARGETS)
+	rm -rf $(TARGETS) $(TEST_TARGETS) $(OBJS) $(CLEAN_TARGETS) output objs
 
 include src/test/module.mk
 
