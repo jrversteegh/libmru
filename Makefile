@@ -12,6 +12,10 @@ PREFIX ?= /usr/local
 
 
 all: $(TARGETS)
+
+
+install:
+	# No install targets yet
 	
 .PRECIOUS: objs/%.o
 objs/%.o: src/%.cc $(HEADERS) Makefile objs
