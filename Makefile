@@ -8,6 +8,7 @@ SOURCES := $(wildcard src/*.cc)
 HEADERS := $(wildcard include/*.h)
 DEFINES := -DCGAL_NDEBUG
 OBJS := $(patsubst src/%.cc, objs/%.o, $(SOURCES))
+PREFIX ?= /usr/local
 
 
 all: $(TARGETS)
