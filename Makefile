@@ -13,10 +13,10 @@ OBJS := $(patsubst src/%.cc, objs/%.o, $(SOURCES))
 all: $(TARGETS)
 	
 .PRECIOUS: objs/%.o
-objs/%.o: %.cc $(HEADERS) Makefile objs
+objs/%.o: src/%.cc $(HEADERS) Makefile objs
 	g++ -c $(CFLAGS) $(DEFINES) -o $@ $< 
 
-objs/%.obj: %.cpp $(HEADERS) Makefile objs
+objs/%.obj: src/%.cpp $(HEADERS) Makefile objs
 	g++ -c $(CFLAGS) $(DEFINES) -o $@ $<
 
 
