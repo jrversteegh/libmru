@@ -47,6 +47,7 @@ clean:
 include src/test/module.mk
 
 show:
+	@echo $(TARGETS)
 	@echo $(HEADERS)
 	@echo $(SOURCES)
 	@echo $(OBJS)
