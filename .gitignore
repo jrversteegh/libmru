@@ -6,3 +6,4 @@
 *.lai
 *.la
 *.a
+/output
