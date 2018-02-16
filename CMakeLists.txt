@@ -2,30 +2,26 @@ cmake_minimum_required(VERSION 2.8)
 
 project(libmru)
 
+list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
+
+find_package(CGAL REQUIRED)
+set(Boost_USE_MULTITHREADED ON) 
+find_package(Boost REQUIRED COMPONENTS filesystem date_time)
+
+include_directories(PRIVATE include)
+include(${CGAL_USE_FILE})
+link_libraries(${Boost_LIBRARIES})
+
 # use C++11
 set(CMAKE_CXX_FLAGS "-std=c++11")
 
-list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}")
-find_package(CGAL REQUIRED)
+find_package(cppunit)
+if (CPPUNIT_FOUND)
+  enable_testing()
+endif()
 
-include_directories(PRIVATE include)
-set(SOURCES
-  src/calibration.cc
-  src/i2cbus.cc
-  src/chips.cc
-)
-add_library(mru ${SOURCES})
+add_subdirectory(src)
+add_subdirectory(tools)
+add_subdirectory(doc)
 
-# Application
-add_executable(ninedof tools/ninedof.cpp)
-target_link_libraries(ninedof mru)
-
-# Install
-install(TARGETS mru DESTINATION lib)
-
-# Testing
-enable_testing()
-add_executable(test_calibration src/test/test_calibration.cpp)
-target_link_libraries(test_calibration mru) 
-add_test(NAME Calibration COMMAND test_calibration)
 
