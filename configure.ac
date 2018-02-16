@@ -29,6 +29,7 @@ AC_CHECK_HEADER([linux/i2c-dev.h], [], [AC_MSG_ERROR([Unable to find or use linu
 AC_LANG_PUSH([C++])
 AC_CHECK_HEADER([boost/date_time.hpp], [], [AC_MSG_ERROR([Unable to find or use boost/date_time.hpp])])
 AC_CHECK_HEADER([boost/property_tree/ptree.hpp], [], [AC_MSG_ERROR([Unable to find or use boost/property_tree/ptree.hpp])])
+AC_CHECK_HEADER([boost/filesystem.hpp], [], [AC_MSG_ERROR([Unable to find or use boost/filesystem.hpp])])
 AC_LANG_POP
 AC_CHECK_LIB([boost_system], [_init], [], [AC_MSG_ERROR([Unable to find boost_system library.])])
 AC_CHECK_LIB([boost_filesystem], [_init], [], [AC_MSG_ERROR([Unable to find boost_filesystem library.])])
