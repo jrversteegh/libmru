@@ -8,6 +8,16 @@
 *.a
 /output
 
+# Tool binaries
+/tools/ninedof
+/tools/tendof
+
+# Test binaries
+/src/test/test_calibration
+/src/test/test_cgal
+/src/test/test_chips
+/src/test/test_i2cbus
+
 # Automake generated files
 /Makefile
 /Makefile.in
@@ -43,3 +53,24 @@
 /src/test/Makefile
 /src/test/Makefile.in
 /stamp-h1
+
+# CMake generated files
+/CMakeCache.txt
+/CMakeFiles/
+/CTestTestfile.cmake
+/Testing/
+/cmake_install.cmake
+/doc/CMakeFiles/
+/doc/CTestTestfile.cmake
+/doc/cmake_install.cmake
+/src/.libs/
+/src/CMakeFiles/
+/src/CTestTestfile.cmake
+/src/cmake_install.cmake
+/src/test/CMakeFiles/
+/src/test/CTestTestfile.cmake
+/src/test/cmake_install.cmake
+/tools/CMakeFiles/
+/tools/CTestTestfile.cmake
+/tools/Makefile
+/tools/cmake_install.cmake
