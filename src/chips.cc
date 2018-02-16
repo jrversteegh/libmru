@@ -31,6 +31,7 @@ const int bma180_address = 0x40;  // alternative 0x41
 const int itg3200_address = 0x68;
 const int itg3205_address = 0x68; // alternative 0x69: pin 9 high
 const int bmp085_address = 0x77;
+const int bno055_address = 0x28;
 
 
 }  // namespace ninedof

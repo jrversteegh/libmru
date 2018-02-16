@@ -41,6 +41,7 @@ extern const int bma180_address;
 extern const int itg3200_address;
 extern const int itg3205_address;
 extern const int bmp085_address;
+extern const int bno055_address;
 
 template<class Device>
 struct Chip {
@@ -405,6 +406,47 @@ int32_t BMP085T<Device>::eval_pressure(const int32_t raw_pressure)
 }
 
 typedef BMP085T<I2C_device> BMP085;
+
+template <class Device>
+struct BNO055: public Chip<Device> {
+  virtual std::string chip_name() { return "bno055"; }
+  virtual void initialize(const std::string& calibration_file="") {
+    Chip<Device>::initialize(calibration_file);
+  }
+  using Chip<Device>::initialize;
+  virtual void poll() {
+    if (loop_count_ % 120 == 0) {
+      loop_count_ = 0;
+      // Get temperature
+      this->device().write_byte(0xF4, 0x2E);
+    } else if (loop_count_ == 1) {
+      // Read temperature
+      Word raw_temp = this->device().read_word(0xF6);
+      temp_ = eval_temp(raw_temp);
+    } else if (loop_count_ % 2 == 0) {
+      // Get pressure 8 times oversampling: takes 25ms
+      this->device().write_byte(0xF4, 0x34 + (oss_ << 6));
+    } else {
+      Bytes raw_pressure = this->device().read_bytes(0xF6, 3);
+      int32_t pressure = (raw_pressure[0] << 16) + (raw_pressure[1] << 8) + raw_pressure[0];
+      pressure >>= (8 - oss_);
+      pressure = eval_pressure(pressure);
+      Sample sample = Sample(Point(
+          0, 0, static_cast<Value>(pressure)), 
+          static_cast<Value>(temp_),
+          this->calibration()); 
+      this->push_sample(sample);
+    }
+    loop_count_++;
+  }
+  virtual void finalize() {
+  }
+  BNO055(typename Device::Bus_type& bus, const int address, const int oss): 
+        Chip<Device>(bus, address, false), loop_count_(0), oss_(oss) {}
+  BNO055(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, false), loop_count_(0), oss_(3) {}
+  BNO055(typename Device::Bus_type& bus): Chip<Device>(bus, bno055_address, false), loop_count_(0), oss_(3) {}
+};
+
 
 } //namespace ninedof
 
