@@ -8,8 +8,6 @@
 
 #include <boost/filesystem.hpp>
 
-#include "boost_copy_file.h"
-
 #include "../../include/types.h"
 #include "../../include/calibration.h"
 
@@ -41,7 +39,7 @@ class CalibrationTest: public CppUnit::TestFixture {
     CPPUNIT_ASSERT_EQUAL((Value)1.1, calibration.x_factor());
   }
   void testSaveExisting() {
-    test_utils::copy_file(app_path/"calibration/test.ini", app_path/"calibration/copy.ini");
+    boost::filesystem::copy_file(app_path/"calibration/test.ini", app_path/"calibration/copy.ini");
     Calibration calibration(2.2, 0, 1, 0, 1, 0, 1, 0);
     save_calibration(app_path / "calibration/copy.ini", "test_copy", calibration);
     calibration = load_calibration(app_path/"calibration/copy.ini", "test");

@@ -7,8 +7,6 @@ TEST_SOURCES := $(wildcard $(d)*.cpp)
 TEST_TARGETS := $(patsubst %.cpp, %.run, $(TEST_SOURCES))
 TEST_RUN := $(patsubst %.run, %, $(TEST_TARGETS))
 
-TEST_EXTRA_SOURCES := $(d)boost_copy_file.cc
-TEST_EXTRA_OBJS := $(patsubst %.cc, %.o, $(TEST_EXTRA_SOURCES))
 
 CLEAN_TARGETS := $(CLEAN_TARGETS) $(d)calibration/temp.ini $(d)calibration/copy.ini $(TEST_EXTRA_OBJS)
 
