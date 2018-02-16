@@ -18,6 +18,12 @@
 /src/test/test_chips
 /src/test/test_i2cbus
 
+# Generated documentation
+doc/doxygen-build.stamp
+doc/html/
+doc/man/
+doc/xml/
+
 # Automake generated files
 /Makefile
 /Makefile.in
@@ -28,6 +34,7 @@
 /config.guess
 /config.h
 /config.h.in
+/config.h.in~
 /config.log
 /config.status
 /config.sub

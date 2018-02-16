@@ -12,7 +12,7 @@
 #include "../../include/calibration.h"
 
 using namespace std;
-using namespace ninedof;
+using namespace mru;
 
 boost::filesystem::path app_path;
 

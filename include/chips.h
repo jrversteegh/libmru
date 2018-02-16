@@ -18,8 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Declares types for interfacing with the sensor ASICS
  */
 
-#ifndef NINEDOF_CHIPS_
-#define NINEDOF_CHIPS_
+#ifndef MRU_CHIPS_H
+#define MRU_CHIPS_H
 
 #include <chrono>
 #include <thread>
@@ -32,7 +32,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #define history_item_count (100000)
 
-namespace ninedof {
+namespace mru {
 
 extern const int hmc5843_address;
 extern const int hmc5883_address;
@@ -425,6 +425,6 @@ struct BNO055: public Chip<Device> {
 };
 
 
-} //namespace ninedof
+} //namespace mru
 
 #endif

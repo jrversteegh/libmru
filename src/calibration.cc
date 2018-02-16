@@ -25,7 +25,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 
 #include "../include/calibration.h"
 
-namespace ninedof {
+namespace mru {
 
 Calibration load_calibration(const std::string& filename, const std::string& section)
 {
@@ -117,4 +117,4 @@ void save_calibration(const boost::filesystem::path& filename, const std::string
   save_calibration(filename.string(), section, calibration);
 }
 
-}  // namespace ninedof
+}  // namespace mru

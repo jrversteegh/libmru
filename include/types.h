@@ -18,8 +18,8 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Declares some basic types that are used throughout
  */
 
-#ifndef NINEDOF_TYPES_
-#define NINEDOF_TYPES_
+#ifndef MRU_TYPES_H
+#define MRU_TYPES_H
 
 #include <utility>
 #include <deque>
@@ -29,7 +29,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Vector_3.h>
 
-namespace ninedof {
+namespace mru {
 
 typedef boost::posix_time::ptime Time;
 inline Time utc_now() {
@@ -157,6 +157,6 @@ typedef std::deque<Sample> Samples;
 typedef Samples::iterator Sample_i;
 
 
-} //namespace ninedof
+} //namespace mru
 
 #endif

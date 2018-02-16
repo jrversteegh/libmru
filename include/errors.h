@@ -17,13 +17,13 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * \author Jaap Versteegh <j.r.versteegh@gmail.com>
  * Declares types for error handling
  */
-#ifndef NINEDOF_ERRORS_
-#define NINEDOF_ERRORS_
+#ifndef MRU_ERRORS_H
+#define MRU_ERRORS_H
 
 #include <string> 
 #include <sstream> 
 
-namespace ninedof {
+namespace mru {
 
 struct Error { 
   Error(const std::string message, int error = 0): message_(message), error_(error) {}; 

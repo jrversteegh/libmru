@@ -18,15 +18,15 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Declares types for accessing devices on the I2C bus
  */
 
-#ifndef NINEDOF_I2CBUS_
-#define NINEDOF_I2CBUS_
+#ifndef MRU_I2CBUS_H
+#define MRU_I2CBUS_H
 
 #include <cstdint>
 #include <vector>
 
 #include "errors.h"
 
-namespace ninedof {
+namespace mru {
 
 typedef uint8_t Byte;
 typedef uint16_t Word;
@@ -87,6 +87,6 @@ private:
   }
 };
  
-}  // namespace ninedof
+}  // namespace mru
 
 #endif

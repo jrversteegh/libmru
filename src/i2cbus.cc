@@ -38,7 +38,7 @@ extern "C" {
 #include "../include/errors.h"
 #include "../include/i2cbus.h"
 
-namespace ninedof {
+namespace mru {
 
 struct BusRef {
   int refcount;
@@ -233,6 +233,6 @@ Words I2C_device::read_words(const int offset, const int count) const
   return words;
 }	
 
-}  // namespace ninedof
+}  // namespace mru
 
 /* vim: set sw=2 ts=2 et: */

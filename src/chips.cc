@@ -22,7 +22,7 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include "../include/calibration.h"
 
 
-namespace ninedof {
+namespace mru {
 
 const int hmc5843_address = 0x1E;
 const int hmc5883_address = 0x1E;
@@ -34,7 +34,7 @@ const int bmp085_address = 0x77;
 const int bno055_address = 0x28;
 
 
-}  // namespace ninedof
+}  // namespace mru
 
 
 /* vim: set sw=2 ts=2 et: */

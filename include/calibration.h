@@ -18,14 +18,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
  * Defines some default calibration constants
  */
 
-#ifndef NINEDOF_CALIBRATION_
-#define NINEDOF_CALIBRATION_
+#ifndef MRU_CALIBRATION_H
+#define MRU_CALIBRATION_H
 
 #include <boost/filesystem.hpp>
 
 #include "types.h"
 
-namespace ninedof {
+namespace mru {
 
 extern Calibration load_calibration(const std::string& filename, const std::string& section);
 extern Calibration load_calibration(const boost::filesystem::path& filename, const std::string& section);
@@ -34,6 +34,6 @@ extern void save_calibration(const std::string& filename, const std::string& sec
 extern void save_calibration(const boost::filesystem::path& filename, const std::string& section,
                              const Calibration& calibration);
 
-}  // namespace ninedof
+}  // namespace mru
 
 #endif

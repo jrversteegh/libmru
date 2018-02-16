@@ -10,7 +10,7 @@
 #include "../../include/chips.h"
 #include "../../include/errors.h"
 
-using namespace ninedof;
+using namespace mru;
 using namespace std;
 
 int busno = 0;
@@ -87,7 +87,7 @@ public:
 
 int main()
 {
-  char* sbusno = getenv("NINEDOF_BUSNO");
+  char* sbusno = getenv("MRU_BUSNO");
   if (sbusno != 0) {
     busno = atoi(sbusno);
     CppUnit::TextUi::TestRunner runner;
@@ -98,7 +98,7 @@ int main()
       return 1;
   } 
   else {
-    std::cout << "Please set the  NINEDOF_BUSNO environment variable to run this test." << std::endl;
+    std::cout << "Please set the  MRU_BUSNO environment variable to run this test." << std::endl;
   }
 }
 

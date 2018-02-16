@@ -13,7 +13,7 @@
 #include "../../include/i2cbus.h"
 #include "../../include/chips.h"
 
-using namespace ninedof;
+using namespace mru;
 
 struct I2CDeviceMock {
   typedef int Bus_type;
