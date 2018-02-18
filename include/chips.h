@@ -56,11 +56,12 @@ struct Chip {
   virtual void finalize() = 0;
   const Sample& data() const { return data_; }
   const Samples& history() const { return history_; }
-  int chip_id() { return chip_id_; }
-  int chip_version() { return chip_version_; }
+  int id() { return id_; }
+  int version() { return version_; }
+  int status() { return status_; }
   Chip(typename Device::Bus_type& bus, const int address, bool little_endian): 
       device_(bus, address, little_endian), calibration_(), data_(), history_(),
-      chip_id_(0), chip_version_(0) {}
+      id_(0), version_(0), status_(0) {}
 protected:
   Chip& push_sample(const Sample& sample) {
     data_ = sample;
@@ -74,8 +75,9 @@ protected:
     trim_history();
     return *this;
   }
-  void set_chip_id(const int value) { chip_id_ = value; }
-  void set_chip_version(const int value) { chip_version_ = value; }
+  void set_id(const int value) { id_ = value; }
+  void set_version(const int value) { version_ = value; }
+  void set_status(const int value) { status_ = value; }
   Device& device() { return device_; }
   Calibration& calibration() { return calibration_; }
 private:
@@ -83,8 +85,9 @@ private:
   Calibration calibration_;
   Sample data_;
   Samples history_;
-  int chip_id_;
-  int chip_version_;
+  int id_;
+  int version_;
+  int status_;
   void trim_history() {
     while (history_.size() > history_item_count) {
       history_.pop_front();
@@ -110,9 +113,9 @@ struct HMC5843T: public Chip<Device> {
     //if (ready) {
     Words words = this->device().read_words(0x03, 3);
     Sample sample(Point(
-        static_cast<Value>(static_cast<int16_t>(words[0])),
-        static_cast<Value>(static_cast<int16_t>(words[1])),
-        static_cast<Value>(static_cast<int16_t>(words[2]))),
+        static_cast<Scalar>(static_cast<int16_t>(words[0])),
+        static_cast<Scalar>(static_cast<int16_t>(words[1])),
+        static_cast<Scalar>(static_cast<int16_t>(words[2]))),
         0,
         this->calibration()
     );
@@ -156,9 +159,9 @@ struct ADXL345T: public Chip<Device> {
   virtual void poll() {
     Words words = this->device().read_words(0x32, 3);
     Sample sample = Sample(Point(
-        static_cast<Value>(static_cast<int16_t>(words[0])),
-        static_cast<Value>(static_cast<int16_t>(words[1])),
-        static_cast<Value>(static_cast<int16_t>(words[2]))),
+        static_cast<Scalar>(static_cast<int16_t>(words[0])),
+        static_cast<Scalar>(static_cast<int16_t>(words[1])),
+        static_cast<Scalar>(static_cast<int16_t>(words[2]))),
         0,
         this->calibration()
     );
@@ -167,7 +170,7 @@ struct ADXL345T: public Chip<Device> {
   virtual void finalize() {
     // Disable measure bit (set to standby)
     this->device().write_byte(0x2D, 0x00);
-    // Put thethis->device to sleep
+    // Put the device to sleep
     this->device().write_byte(0x2D, 0x07);
   }
   ADXL345T(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, true) {}
@@ -208,8 +211,8 @@ struct BMA180T: public Chip<Device> {
     this->device().write_byte(0x0D, 0x01);
 
     // Get chip information
-    this->set_chip_id(this->device().read_byte(0x00));
-    this->set_chip_version(this->device().read_byte(0x01));
+    this->set_id(this->device().read_byte(0x00));
+    this->set_version(this->device().read_byte(0x01));
   }
   using Chip<Device>::initialize;
   virtual void poll() {
@@ -220,10 +223,10 @@ struct BMA180T: public Chip<Device> {
     int16_t y = static_cast<int16_t>(xyz[1]) >> 2;
     int16_t z = static_cast<int16_t>(xyz[2]) >> 2;
     Sample sample = Sample(Point(
-        static_cast<Value>(x),
-        static_cast<Value>(y),
-        static_cast<Value>(z)),
-        static_cast<Value>(static_cast<int8_t>(temp)),
+        static_cast<Scalar>(x),
+        static_cast<Scalar>(y),
+        static_cast<Scalar>(z)),
+        static_cast<Scalar>(static_cast<int8_t>(temp)),
         this->calibration()
     );
     this->push_sample(sample);
@@ -258,10 +261,10 @@ struct ITG3200T: public Chip<Device> {
   virtual void poll() {
     Words words = this->device().read_words(0x1B, 4);
     Sample sample(Point(
-        static_cast<Value>(static_cast<int16_t>(words[1])),
-        static_cast<Value>(static_cast<int16_t>(words[2])),
-        static_cast<Value>(static_cast<int16_t>(words[3]))),
-        static_cast<Value>(static_cast<int16_t>(words[0])),
+        static_cast<Scalar>(static_cast<int16_t>(words[1])),
+        static_cast<Scalar>(static_cast<int16_t>(words[2])),
+        static_cast<Scalar>(static_cast<int16_t>(words[3]))),
+        static_cast<Scalar>(static_cast<int16_t>(words[0])),
         this->calibration()
     ); 
     this->push_sample(sample);
@@ -313,8 +316,8 @@ struct BMP085T: public Chip<Device> {
       pressure >>= (8 - oss_);
       pressure = eval_pressure(pressure);
       Sample sample = Sample(Point(
-          0, 0, static_cast<Value>(pressure)), 
-          static_cast<Value>(temp_),
+          0, 0, static_cast<Scalar>(pressure)), 
+          static_cast<Scalar>(temp_),
           this->calibration()); 
       this->push_sample(sample);
     }
@@ -407,23 +410,70 @@ int32_t BMP085T<Device>::eval_pressure(const int32_t raw_pressure)
 
 typedef BMP085T<I2C_device> BMP085;
 
+
 template <class Device>
-struct BNO055: public Chip<Device> {
+struct BNO055T: public Chip<Device> {
   virtual std::string chip_name() { return "bno055"; }
   virtual void initialize(const std::string& calibration_file="") {
     Chip<Device>::initialize(calibration_file);
+
+    // Switch the chip to config mode
+    this->device()->write_byte(0x3D, 0x00);
+
+    // The switch takes a little while
+    std::this_thread::sleep_for(std::chrono::milliseconds(25));
+
+    // Set/switch to normal power mode
+    this->device()->write_byte(0x3E, 0x00);
+
+    // Select units: m/s^2, rad/s, rad, celcius
+    this->device()->write_byte(0x3B, 0x06);
+
+    // Axes configuration: z axes down
+    this->device()->write_byte(0x41, 0x24);
+    this->device()->write_byte(0x42, 0x03);
+
+    // Switch chip to fusion mode: NDOF
+    this->device()->write_byte(0x3D, 0x1D);
+
+    // The switch takes a little while
+    std::this_thread::sleep_for(std::chrono::milliseconds(15));
+
+    // Get chip information
+    this->set_id(this->device().read_byte(0x00));
+    this->set_version((this->device().read_byte(0x05) << 8) + this->device().read_byte(0x04));
   }
   using Chip<Device>::initialize;
   virtual void poll() {
+    int status = this->device()->read_word(0x39);
+    // Expected the "sensor fusion algorithm running" bit to be set. Toggle that so status becomes 0
+    // when everything is as expected. Any bits set either indicate an unexpected state or an error
+    this->set_status(status ^ 0x0020);
+    
+    calibration_ = this->device()->read_byte(0x35);
   }
   virtual void finalize() {
+    // Switch the chip to config mode
+    this->device()->write_byte(0x3D, 0x00);
+
+    // The switch takes a little while
+    std::this_thread::sleep_for(std::chrono::milliseconds(25));
+
+    // Suspend the chip
+    this->device()->write_byte(0x3E, 0x02);
   }
-  BNO055(typename Device::Bus_type& bus, const int address, const int oss): 
-        Chip<Device>(bus, address, false) {}
-  BNO055(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, false) {}
-  BNO055(typename Device::Bus_type& bus): Chip<Device>(bus, bno055_address, false) {}
+  BNO055T(typename Device::Bus_type& bus, const int address, const int oss): 
+        Chip<Device>(bus, address, false), calibration_(0) {}
+  BNO055T(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, false), calibration_(0) {}
+  BNO055T(typename Device::Bus_type& bus): Chip<Device>(bus, bno055_address, false), calibration_(0) {}
+  int get_calibrarion() {
+    return calibration_;
+  }
+private:
+  int calibration_;
 };
 
+typedef BNO055T<I2C_device> BNO055;
 
 } //namespace mru
 

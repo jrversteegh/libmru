@@ -87,7 +87,7 @@ int main(int argc, char* argv[])
     gyro.initialize(calibration_file);
     pressure.initialize(calibration_file);
 
-    cout << "BMA180: " << acceleration.chip_id() << " " << acceleration.chip_version() << endl;
+    cout << "BMA180: " << acceleration.id() << " " << acceleration.version() << endl;
 
     int wait = 1000;
     char *sample_rate = getenv("NINEDOF_SAMPLE_RATE");

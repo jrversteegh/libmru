@@ -41,37 +41,37 @@ Calibration load_calibration(const std::string& filename, const std::string& sec
 
    Calibration result;
 
-   if (pt.get(section + ".x_factor", (Value)0) == 0 &&
-       pt.get(section + ".y_factor", (Value)0) == 0 &&
-       pt.get(section + ".z_factor", (Value)0) == 0) {
-     Value xx_factor = pt.get(section + ".xx_factor", (Value)1.0);
-     Value xy_factor = pt.get(section + ".xy_factor", (Value)0.0);
-     Value xz_factor = pt.get(section + ".xz_factor", (Value)0.0);
-     Value x_offset = pt.get(section + ".x_offset", (Value)0.0);
-     Value yx_factor = pt.get(section + ".yx_factor", (Value)0.0);
-     Value yy_factor = pt.get(section + ".yy_factor", (Value)1.0);
-     Value yz_factor = pt.get(section + ".yz_factor", (Value)0.0);
-     Value y_offset = pt.get(section + ".y_offset", (Value)0.0);
-     Value zx_factor = pt.get(section + ".zx_factor", (Value)0.0);
-     Value zy_factor = pt.get(section + ".zy_factor", (Value)0.0);
-     Value zz_factor = pt.get(section + ".zz_factor", (Value)1.0);
-     Value z_offset = pt.get(section + ".z_offset", (Value)0.0);
-     Value v_factor = pt.get(section + ".v_factor", (Value)1.0);
-     Value v_offset = pt.get(section + ".v_offset", (Value)0.0);
+   if (pt.get(section + ".x_factor", (Scalar)0) == 0 &&
+       pt.get(section + ".y_factor", (Scalar)0) == 0 &&
+       pt.get(section + ".z_factor", (Scalar)0) == 0) {
+     Scalar xx_factor = pt.get(section + ".xx_factor", (Scalar)1.0);
+     Scalar xy_factor = pt.get(section + ".xy_factor", (Scalar)0.0);
+     Scalar xz_factor = pt.get(section + ".xz_factor", (Scalar)0.0);
+     Scalar x_offset = pt.get(section + ".x_offset", (Scalar)0.0);
+     Scalar yx_factor = pt.get(section + ".yx_factor", (Scalar)0.0);
+     Scalar yy_factor = pt.get(section + ".yy_factor", (Scalar)1.0);
+     Scalar yz_factor = pt.get(section + ".yz_factor", (Scalar)0.0);
+     Scalar y_offset = pt.get(section + ".y_offset", (Scalar)0.0);
+     Scalar zx_factor = pt.get(section + ".zx_factor", (Scalar)0.0);
+     Scalar zy_factor = pt.get(section + ".zy_factor", (Scalar)0.0);
+     Scalar zz_factor = pt.get(section + ".zz_factor", (Scalar)1.0);
+     Scalar z_offset = pt.get(section + ".z_offset", (Scalar)0.0);
+     Scalar v_factor = pt.get(section + ".v_factor", (Scalar)1.0);
+     Scalar v_offset = pt.get(section + ".v_offset", (Scalar)0.0);
      result = Calibration(xx_factor, xy_factor, xz_factor, x_offset, 
                           yx_factor, yy_factor, yz_factor, y_offset,
                           zx_factor, zy_factor, zz_factor, z_offset,
                           v_factor, v_offset);
    } 
    else {
-     Value x_factor = pt.get(section + ".x_factor", (Value)1.0);
-     Value x_offset = pt.get(section + ".x_offset", (Value)0.0);
-     Value y_factor = pt.get(section + ".y_factor", (Value)1.0);
-     Value y_offset = pt.get(section + ".y_offset", (Value)0.0);
-     Value z_factor = pt.get(section + ".z_factor", (Value)1.0);
-     Value z_offset = pt.get(section + ".z_offset", (Value)0.0);
-     Value v_factor = pt.get(section + ".v_factor", (Value)1.0);
-     Value v_offset = pt.get(section + ".v_offset", (Value)0.0);
+     Scalar x_factor = pt.get(section + ".x_factor", (Scalar)1.0);
+     Scalar x_offset = pt.get(section + ".x_offset", (Scalar)0.0);
+     Scalar y_factor = pt.get(section + ".y_factor", (Scalar)1.0);
+     Scalar y_offset = pt.get(section + ".y_offset", (Scalar)0.0);
+     Scalar z_factor = pt.get(section + ".z_factor", (Scalar)1.0);
+     Scalar z_offset = pt.get(section + ".z_offset", (Scalar)0.0);
+     Scalar v_factor = pt.get(section + ".v_factor", (Scalar)1.0);
+     Scalar v_offset = pt.get(section + ".v_offset", (Scalar)0.0);
      result = Calibration(x_factor, x_offset, 
                           y_factor, y_offset,
                           z_factor, z_offset, 

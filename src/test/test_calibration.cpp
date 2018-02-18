@@ -19,33 +19,33 @@ boost::filesystem::path app_path;
 class CalibrationTest: public CppUnit::TestFixture {
   void testLoad() {
     Calibration calibration = load_calibration(app_path/"calibration/test.ini", "test");
-    CPPUNIT_ASSERT_EQUAL((Value)8.8, calibration.x_factor());
-    CPPUNIT_ASSERT_EQUAL((Value)9.9, calibration.x_offset());
-    CPPUNIT_ASSERT_EQUAL((Value)88, calibration.y_factor());
-    CPPUNIT_ASSERT_EQUAL((Value)99, calibration.y_offset());
-    CPPUNIT_ASSERT_EQUAL((Value)880, calibration.z_factor());
-    CPPUNIT_ASSERT_EQUAL((Value)990, calibration.z_offset());
-    CPPUNIT_ASSERT_EQUAL((Value)8800, calibration.v_factor());
-    CPPUNIT_ASSERT_EQUAL((Value)9900, calibration.v_offset());
+    CPPUNIT_ASSERT_EQUAL((Scalar)8.8, calibration.x_factor());
+    CPPUNIT_ASSERT_EQUAL((Scalar)9.9, calibration.x_offset());
+    CPPUNIT_ASSERT_EQUAL((Scalar)88, calibration.y_factor());
+    CPPUNIT_ASSERT_EQUAL((Scalar)99, calibration.y_offset());
+    CPPUNIT_ASSERT_EQUAL((Scalar)880, calibration.z_factor());
+    CPPUNIT_ASSERT_EQUAL((Scalar)990, calibration.z_offset());
+    CPPUNIT_ASSERT_EQUAL((Scalar)8800, calibration.v_factor());
+    CPPUNIT_ASSERT_EQUAL((Scalar)9900, calibration.v_offset());
   }
   void testLoadNonExisting() {
     Calibration calibration = load_calibration(app_path/"calibration/nonexisting.ini", "test");
-    CPPUNIT_ASSERT_EQUAL((Value)1.0, calibration.x_factor());
+    CPPUNIT_ASSERT_EQUAL((Scalar)1.0, calibration.x_factor());
   }
   void testSave() {
     Calibration calibration(1.1, 0, 1, 0, 1, 0, 1, 0);
     save_calibration(app_path / "calibration/temp.ini", "test", calibration);
     calibration = load_calibration(app_path/"calibration/temp.ini", "test");
-    CPPUNIT_ASSERT_EQUAL((Value)1.1, calibration.x_factor());
+    CPPUNIT_ASSERT_EQUAL((Scalar)1.1, calibration.x_factor());
   }
   void testSaveExisting() {
     boost::filesystem::copy_file(app_path/"calibration/test.ini", app_path/"calibration/copy.ini");
     Calibration calibration(2.2, 0, 1, 0, 1, 0, 1, 0);
     save_calibration(app_path / "calibration/copy.ini", "test_copy", calibration);
     calibration = load_calibration(app_path/"calibration/copy.ini", "test");
-    CPPUNIT_ASSERT_EQUAL((Value)8.8, calibration.x_factor());
+    CPPUNIT_ASSERT_EQUAL((Scalar)8.8, calibration.x_factor());
     calibration = load_calibration(app_path/"calibration/copy.ini", "test_copy");
-    CPPUNIT_ASSERT_EQUAL((Value)2.2, calibration.x_factor());
+    CPPUNIT_ASSERT_EQUAL((Scalar)2.2, calibration.x_factor());
   }
 public:
   virtual void setUp() {

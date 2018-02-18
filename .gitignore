@@ -17,6 +17,7 @@
 /src/test/test_cgal
 /src/test/test_chips
 /src/test/test_i2cbus
+/src/test/test_types
 
 # Generated documentation
 doc/doxygen-build.stamp
