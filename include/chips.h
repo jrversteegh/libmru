@@ -434,7 +434,7 @@ struct BNO055T: public Chip<Device> {
     this->device()->write_byte(0x42, 0x03);
 
     // Switch chip to fusion mode: NDOF
-    this->device()->write_byte(0x3D, 0x1D);
+    this->device()->write_byte(0x3D, 0x0C);
 
     // The switch takes a little while
     std::this_thread::sleep_for(std::chrono::milliseconds(15));
