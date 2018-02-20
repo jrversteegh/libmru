@@ -82,3 +82,19 @@ doc/xml/
 /tools/CTestTestfile.cmake
 /tools/Makefile
 /tools/cmake_install.cmake
+
+# Automake test output
+/src/.dirstamp
+/src/test/.deps/
+/src/test/test-suite.log
+/src/test/test_calibration.log
+/src/test/test_calibration.trs
+/src/test/test_cgal.log
+/src/test/test_cgal.trs
+/src/test/test_chips.log
+/src/test/test_chips.trs
+/src/test/test_i2cbus.log
+/src/test/test_i2cbus.trs
+/src/test/test_types.log
+/src/test/test_types.trs
+/test-driver
