@@ -133,40 +133,69 @@ struct RotScalar {
   template <class RS>
   RotScalar& operator=(const RS& rs) {
     set_value(rs.get_value());
+    return *this;
   }
   RotScalar& operator=(const Scalar<FT> s) {
     set_value(s);
+    return *this;
   }
   RotScalar& operator+= (const RotScalar& rs) {
     set_value(get_value() + rs.get_value());
+    return *this;
   }
   RotScalar& operator-= (const RotScalar& rs) {
     set_value(get_value() - rs.get_value());
+    return *this;
   }
   RotScalar& operator+= (const Scalar<FT>& s) {
     set_value(get_value() + s);
+    return *this;
   }
   RotScalar& operator-= (const Scalar<FT>& s) {
     set_value(get_value() - s);
+    return *this;
   }
   RotScalar& operator*= (const Scalar<FT>& s) {
     set_value(get_value() * s);
+    return *this;
   }
   RotScalar& operator/= (const Scalar<FT>& s) {
     set_value(get_value() / s);
+    return *this;
   }
 private:
   Scalar<FT> value_;
 };
 
 template<int MinQ, int MaxQ, typename FT, typename O> inline 
-typename std::enable_if<std::is_arithmetic<O>::value, RotScalar<MinQ, MaxQ, FT> >&& 
-operator*(RotScalar<MinQ, MaxQ, FT> rs, O s) {
-  auto v = rs.get_value();
-  return std::move(RotScalar<MinQ, MaxQ, FT>(v * s));
+typename std::enable_if<std::is_arithmetic<O>::value, RotScalar<MinQ, MaxQ, FT> >::type 
+operator*(const RotScalar<MinQ, MaxQ, FT>& rs, const O& s) {
+  return RotScalar<MinQ, MaxQ, FT>(rs.get_value() * s);
 }
 
+template<int MinQ, int MaxQ, typename FT, typename O> inline 
+typename std::enable_if<std::is_arithmetic<O>::value, RotScalar<MinQ, MaxQ, FT> >::type 
+operator*(const O& s, const RotScalar<MinQ, MaxQ, FT>& rs) {
+  return rs * s;
+}
 
+template<int MinQ, int MaxQ, typename FT, typename O> inline 
+typename std::enable_if<std::is_arithmetic<O>::value, RotScalar<MinQ, MaxQ, FT> >::type 
+operator+(const RotScalar<MinQ, MaxQ, FT>& rs, const O& s) {
+  return RotScalar<MinQ, MaxQ, FT>(rs.get_value() + s);
+}
+
+template<int MinQ, int MaxQ, typename FT, typename O> inline 
+typename std::enable_if<std::is_arithmetic<O>::value, RotScalar<MinQ, MaxQ, FT> >::type 
+operator+(const O s, const RotScalar<MinQ, MaxQ, FT>& rs) {
+  return rs + s;
+}
+
+template<int MinQ, int MaxQ, typename FT, typename O> inline 
+typename std::enable_if<std::is_arithmetic<O>::value, RotScalar<MinQ, MaxQ, FT> >::type 
+operator/(const RotScalar<MinQ, MaxQ, FT>& rs, const O& s) {
+  return RotScalar<MinQ, MaxQ, FT>(rs.get_value() / s);
+}
 
 // Define quantities provided by the sensors
 enum class Quantity {

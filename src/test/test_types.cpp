@@ -73,6 +73,14 @@ class TypesTest: public CppUnit::TestFixture {
     CPPUNIT_ASSERT_DOUBLES_EQUAL(45.0, r2d(rs.get_value()), 5E-5);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(45.0, rs.to_degrees(), 5E-5);
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5 * M_SQRT2, sin(rs), 5E-5);
+    auto rs2 = rs + d2r(405.0);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(90.0, rs2.to_degrees(), 5E-5);
+    auto rs3 = rs * 10;
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(90.0, rs3.to_degrees(), 5E-5);
+    float val = rs3;
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(d2r(90.0), val, 5E-5);
+    val = rs3 / 3.0;
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(d2r(30.0), val, 5E-5);
   }
 public:
   CPPUNIT_TEST_SUITE(TypesTest);
