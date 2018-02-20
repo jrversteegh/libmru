@@ -20,7 +20,7 @@ class TypesTest: public CppUnit::TestFixture {
     Scalar<> pif = std::modf(pi, &pii);
     CPPUNIT_ASSERT_EQUAL((Scalar<>)3, pii);
   }
-  void testRotScalar() {
+  void testRotScalarSetValue() {
     RotScalar<-1, 1, double> pitch;
     pitch.set_value(d2r(100.0));
     CPPUNIT_ASSERT_DOUBLES_EQUAL(80.0, r2d(pitch.get_value()), 5E-12);
@@ -68,10 +68,17 @@ class TypesTest: public CppUnit::TestFixture {
     quart.set_value(d2r(0.0));
     CPPUNIT_ASSERT_DOUBLES_EQUAL(0.0, r2d(quart.get_value()), 5E-5);
   }
+  void testRotScalarOperators() {
+    auto rs = RotScalar<>(d2r(45.0));
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(45.0, r2d(rs.get_value()), 5E-5);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(45.0, rs.to_degrees(), 5E-5);
+    CPPUNIT_ASSERT_DOUBLES_EQUAL(0.5 * M_SQRT2, sin(rs), 5E-5);
+  }
 public:
   CPPUNIT_TEST_SUITE(TypesTest);
   CPPUNIT_TEST(testScalar);
-  CPPUNIT_TEST(testRotScalar);
+  CPPUNIT_TEST(testRotScalarSetValue);
+  CPPUNIT_TEST(testRotScalarOperators);
   CPPUNIT_TEST_SUITE_END();
 };
 

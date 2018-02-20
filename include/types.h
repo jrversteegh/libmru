@@ -53,40 +53,44 @@ template<typename FT=DefaultFT>
 using Transformation = typename CGAL::Simple_cartesian<FT>::Aff_transformation_3;
 
 template<typename FT> inline
-typename std::enable_if<std::is_floating_point<FT>::value, Scalar<FT> >::type d2r(Scalar<FT> degs) {
-  static const Scalar<FT> rpd = 0.017453292519943295769236907684886;
+typename std::enable_if<std::is_floating_point<FT>::value, FT>::type d2r(FT degs) {
+  static const FT rpd = 0.017453292519943295769236907684886;
   return rpd * degs;
 }
 
 template<typename FT> inline 
-typename std::enable_if<std::is_floating_point<FT>::value, Scalar<FT> >::type r2d(Scalar<FT> rads) {
-  static const Scalar<FT> dpr = 57.295779513082320876798154814105;
+typename std::enable_if<std::is_floating_point<FT>::value, FT>::type r2d(FT rads) {
+  static const FT dpr = 57.295779513082320876798154814105;
   return dpr * rads;
 }
 
-template <int MinQuart, int MaxQuart, typename FT=DefaultFT>
+template <int MinQ=0, int MaxQ=4, typename FT=DefaultFT>
 struct RotScalar {
-  static constexpr Scalar<FT> two_pi = 6.283185307179586476925286766559;
-  static constexpr Scalar<FT> pi = 3.1415926535897932384626433832795;
-  static constexpr Scalar<FT> half_pi = 1.5707963267948966192313216916398;
-  static constexpr int Quarters = MaxQuart - MinQuart;
-  static constexpr Scalar<FT> min = half_pi * MinQuart;
-  static constexpr Scalar<FT> max = half_pi * MaxQuart;
-  static constexpr Scalar<FT> range = max - min;
+  static constexpr FT two_pi = 6.283185307179586476925286766559;
+  static constexpr FT pi = 3.1415926535897932384626433832795;
+  static constexpr FT half_pi = 1.5707963267948966192313216916398;
+  static constexpr int Quarters = MaxQ - MinQ;
+  static constexpr FT min = half_pi * MinQ;
+  static constexpr FT max = half_pi * MaxQ;
+  static constexpr FT range = max - min;
   RotScalar(): value_(0) {}
   RotScalar(const Scalar<FT>& s) {
     set_value(s);
   }
+  RotScalar(const Scalar<FT>& s, bool from_degrees) {
+    if (from_degrees)
+      set_value(d2r(s));
+    else
+      set_value(s);
+  }
   RotScalar(const RotScalar& rs) {
     set_value(rs.get_value());
   }
-  Scalar<FT> operator[](int index) const {
-    if (index != 0)
-      throw std::out_of_range("Index should be 0");
-    return get_value();
-  }
   Scalar<FT> get_value() const {
     return value_;
+  }
+  Scalar<FT> to_degrees() const {
+    return r2d(value_);
   }
   template <int Quarters = Quarters>
   typename std::enable_if<Quarters == 4, Scalar<FT> >::type set_value(Scalar<FT> value) {
@@ -117,8 +121,21 @@ struct RotScalar {
       value_ = value;
     return value_;
   }
-  operator Scalar<FT>() const {
+  Scalar<FT> operator[](int index) const {
+    if (index != 0)
+      throw std::out_of_range("Index should be 0");
     return get_value();
+  }
+  operator Scalar<FT>() const {
+    auto v = get_value();
+    return v;
+  }
+  template <class RS>
+  RotScalar& operator=(const RS& rs) {
+    set_value(rs.get_value());
+  }
+  RotScalar& operator=(const Scalar<FT> s) {
+    set_value(s);
   }
   RotScalar& operator+= (const RotScalar& rs) {
     set_value(get_value() + rs.get_value());
@@ -141,6 +158,14 @@ struct RotScalar {
 private:
   Scalar<FT> value_;
 };
+
+template<int MinQ, int MaxQ, typename FT, typename O> inline 
+typename std::enable_if<std::is_arithmetic<O>::value, RotScalar<MinQ, MaxQ, FT> >&& 
+operator*(RotScalar<MinQ, MaxQ, FT> rs, O s) {
+  auto v = rs.get_value();
+  return std::move(RotScalar<MinQ, MaxQ, FT>(v * s));
+}
+
 
 
 // Define quantities provided by the sensors
@@ -177,6 +202,18 @@ struct Quantity_type<Quantity::AngularVelocity, FT> {
 template<typename FT>
 struct Quantity_type<Quantity::MagneticFlux, FT> {
   typedef Vector<FT> type;
+};
+template<typename FT>
+struct Quantity_type<Quantity::Heading, FT> {
+  typedef RotScalar<0, 4, FT> type;
+};
+template<typename FT>
+struct Quantity_type<Quantity::Pitch, FT> {
+  typedef RotScalar<-1, 1, FT> type;
+};
+template<typename FT>
+struct Quantity_type<Quantity::Roll, FT> {
+  typedef RotScalar<-2, 2, FT> type;
 };
 
 
