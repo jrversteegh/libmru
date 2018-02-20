@@ -5,6 +5,7 @@ project(libmru)
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 
 find_package(CGAL REQUIRED)
+
 set(Boost_USE_MULTITHREADED ON) 
 find_package(Boost REQUIRED COMPONENTS filesystem date_time)
 
@@ -20,6 +21,7 @@ if (CPPUNIT_FOUND)
   enable_testing()
 endif()
 
+add_subdirectory(include)
 add_subdirectory(src)
 add_subdirectory(tools)
 add_subdirectory(doc)

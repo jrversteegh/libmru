@@ -20,10 +20,10 @@
 /src/test/test_types
 
 # Generated documentation
-doc/doxygen-build.stamp
-doc/html/
-doc/man/
-doc/xml/
+/doc/doxygen-build.stamp
+/doc/html/
+/doc/man/
+/doc/xml/
 
 # Automake generated files
 /Makefile
@@ -82,6 +82,11 @@ doc/xml/
 /tools/CTestTestfile.cmake
 /tools/Makefile
 /tools/cmake_install.cmake
+/include/CMakeFiles/
+/include/CTestTestfile.cmake
+/include/cmake_install.cmake
+/install_manifest.txt
+/src/libmru.so.*
 
 # Automake test output
 /src/.dirstamp
@@ -98,3 +103,4 @@ doc/xml/
 /src/test/test_types.log
 /src/test/test_types.trs
 /test-driver
+
