@@ -43,7 +43,7 @@ extern const int itg3205_address;
 extern const int bmp085_address;
 extern const int bno055_address;
 
-template<class Device>
+template<class Device, typename FT=DefaultFT>
 struct Chip {
   virtual std::string chip_name() { return "unknown"; }
   virtual void initialize(const std::string& calibration_file="") {
@@ -54,8 +54,8 @@ struct Chip {
   }
   virtual void poll() = 0;
   virtual void finalize() = 0;
-  const Sample& data() const { return data_; }
-  const Samples& history() const { return history_; }
+  const Sample<FT>& data() const { return data_; }
+  const Samples<FT>& history() const { return history_; }
   int id() { return id_; }
   int version() { return version_; }
   int status() { return status_; }
@@ -63,13 +63,13 @@ struct Chip {
       device_(bus, address, little_endian), calibration_(), data_(), history_(),
       id_(0), version_(0), status_(0) {}
 protected:
-  Chip& push_sample(const Sample& sample) {
+  Chip& push_sample(const Sample<FT>& sample) {
     data_ = sample;
     history_.push_back(data_);
     trim_history();
     return *this;
   }
-  Chip& push_sample(Sample&& sample) {
+  Chip& push_sample(Sample<FT>&& sample) {
     data_ = sample;
     history_.push_back(data_);
     trim_history();
@@ -79,12 +79,12 @@ protected:
   void set_version(const int value) { version_ = value; }
   void set_status(const int value) { status_ = value; }
   Device& device() { return device_; }
-  Calibration& calibration() { return calibration_; }
+  Calibration<FT>& calibration() { return calibration_; }
 private:
   Device device_;
-  Calibration calibration_;
-  Sample data_;
-  Samples history_;
+  Calibration<FT> calibration_;
+  Sample<FT> data_;
+  Samples<FT> history_;
   int id_;
   int version_;
   int status_;
@@ -95,7 +95,7 @@ private:
   }
 };
 
-template<class Device>
+template<class Device, typename FT=DefaultFT>
 struct HMC5843T: public Chip<Device> {
   virtual std::string chip_name() { return "hmc5843"; }
   virtual void initialize(const std::string& calibration_file="") {
@@ -112,14 +112,13 @@ struct HMC5843T: public Chip<Device> {
     //Byte ready = this->device().read_byte(0x09) & 0x01;
     //if (ready) {
     Words words = this->device().read_words(0x03, 3);
-    Sample sample(Point(
-        static_cast<Scalar>(static_cast<int16_t>(words[0])),
-        static_cast<Scalar>(static_cast<int16_t>(words[1])),
-        static_cast<Scalar>(static_cast<int16_t>(words[2]))),
-        0,
-        this->calibration()
-    );
-    this->push_sample(sample);
+
+    auto point = Point<FT>{
+        static_cast<Scalar<FT> >(static_cast<int16_t>(words[0])),
+        static_cast<Scalar<FT> >(static_cast<int16_t>(words[1])),
+        static_cast<Scalar<FT> >(static_cast<int16_t>(words[2]))};
+    
+    //this->push_sample(Sample<FT>(point, 0);
     //}
   }
   virtual void finalize() {
@@ -132,7 +131,7 @@ struct HMC5843T: public Chip<Device> {
 
 typedef HMC5843T<I2C_device> HMC5843;
 
-template<class Device>
+template<class Device, typename FT=DefaultFT>
 struct HMC5883T: public HMC5843T<Device> {
   virtual std::string chip_name() { return "hmc5883"; }
   HMC5883T(typename Device::Bus_type& bus, const int address): HMC5843T<Device>(bus, address) {}
@@ -141,7 +140,7 @@ struct HMC5883T: public HMC5843T<Device> {
 
 typedef HMC5883T<I2C_device> HMC5883;
 
-template<class Device>
+template<class Device, typename FT=DefaultFT>
 struct ADXL345T: public Chip<Device> {
   virtual std::string chip_name() { return "adxl345"; }
   virtual void initialize(const std::string& calibration_file="") {
@@ -158,14 +157,11 @@ struct ADXL345T: public Chip<Device> {
   using Chip<Device>::initialize;
   virtual void poll() {
     Words words = this->device().read_words(0x32, 3);
-    Sample sample = Sample(Point(
-        static_cast<Scalar>(static_cast<int16_t>(words[0])),
-        static_cast<Scalar>(static_cast<int16_t>(words[1])),
-        static_cast<Scalar>(static_cast<int16_t>(words[2]))),
-        0,
-        this->calibration()
-    );
-    this->push_sample(sample);
+    auto point = Point<FT>{
+        static_cast<Scalar<FT> >(static_cast<int16_t>(words[0])),
+        static_cast<Scalar<FT> >(static_cast<int16_t>(words[1])),
+        static_cast<Scalar<FT> >(static_cast<int16_t>(words[2]))};
+    //this->push_sample(Sample<FT>
   }
   virtual void finalize() {
     // Disable measure bit (set to standby)
@@ -179,7 +175,7 @@ struct ADXL345T: public Chip<Device> {
 
 typedef ADXL345T<I2C_device> ADXL345;
 
-template<class Device>
+template<class Device, typename FT=DefaultFT>
 struct BMA180T: public Chip<Device> {
   virtual std::string chip_name() { return "bma180"; }
   virtual void initialize(const std::string& calibration_file="") {
@@ -217,19 +213,19 @@ struct BMA180T: public Chip<Device> {
   using Chip<Device>::initialize;
   virtual void poll() {
     Words xyz = this->device().read_words(0x02, 3);
-    Byte temp = this->device().read_byte(0x08);
+    auto temp = static_cast<int8_t>(this->device().read_byte(0x08));
     // The 0 and 1 bits are shifted out (the values are only 14 bit)
-    int16_t x = static_cast<int16_t>(xyz[0]) >> 2;
-    int16_t y = static_cast<int16_t>(xyz[1]) >> 2;
-    int16_t z = static_cast<int16_t>(xyz[2]) >> 2;
-    Sample sample = Sample(Point(
-        static_cast<Scalar>(x),
-        static_cast<Scalar>(y),
-        static_cast<Scalar>(z)),
-        static_cast<Scalar>(static_cast<int8_t>(temp)),
-        this->calibration()
-    );
-    this->push_sample(sample);
+    auto x = static_cast<int16_t>(xyz[0]) >> 2;
+    auto y = static_cast<int16_t>(xyz[1]) >> 2;
+    auto z = static_cast<int16_t>(xyz[2]) >> 2;
+    auto point = Point<FT>{
+        static_cast<Scalar<FT> >(x),
+        static_cast<Scalar<FT> >(y),
+        static_cast<Scalar<FT> >(z)};
+    auto tempf = static_cast<Scalar<FT> >(temp);
+
+    //    this->calibration()
+    //this->push_sample(sample);
   }
   virtual void finalize() {
     // Put the device to sleep
@@ -241,7 +237,7 @@ struct BMA180T: public Chip<Device> {
 
 typedef BMA180T<I2C_device> BMA180;
 
-template<class Device>
+template<class Device, typename FT=DefaultFT>
 struct ITG3200T: public Chip<Device> {
   virtual std::string chip_name() { return "itg3200"; }
   virtual void initialize(const std::string& calibration_file="") {
@@ -260,14 +256,14 @@ struct ITG3200T: public Chip<Device> {
   using Chip<Device>::initialize;
   virtual void poll() {
     Words words = this->device().read_words(0x1B, 4);
-    Sample sample(Point(
-        static_cast<Scalar>(static_cast<int16_t>(words[1])),
-        static_cast<Scalar>(static_cast<int16_t>(words[2])),
-        static_cast<Scalar>(static_cast<int16_t>(words[3]))),
-        static_cast<Scalar>(static_cast<int16_t>(words[0])),
-        this->calibration()
-    ); 
-    this->push_sample(sample);
+    auto gyr = Point<FT>{
+        static_cast<Scalar<FT> >(static_cast<int16_t>(words[1])),
+        static_cast<Scalar<FT> >(static_cast<int16_t>(words[2])),
+        static_cast<Scalar<FT> >(static_cast<int16_t>(words[3]))};
+    auto temp = static_cast<Scalar<FT> >(static_cast<int16_t>(words[0]));
+
+    //    this->calibration()
+    //this->push_sample(sample);
   }
   virtual void finalize() {
     // Put to sleep and select internal oscillator as clock
@@ -279,7 +275,7 @@ struct ITG3200T: public Chip<Device> {
 
 typedef ITG3200T<I2C_device> ITG3200;
 
-template<class Device>
+template<class Device, typename FT=DefaultFT>
 struct ITG3205T: public ITG3200T<Device> {
   virtual std::string chip_name() { return "itg3205"; }
   ITG3205T(typename Device::Bus_type& bus, const int address): ITG3200T<Device>(bus, address) {}
@@ -288,16 +284,16 @@ struct ITG3205T: public ITG3200T<Device> {
 
 typedef ITG3205T<I2C_device> ITG3205;
 
-template<class Device>
-struct BMP085T: public Chip<Device> {
+template<class Device, typename FT=DefaultFT>
+struct BMP085T: public Chip<Device, FT> {
   virtual std::string chip_name() { return "bmp085"; }
   virtual void initialize(const std::string& calibration_file="") {
-    Chip<Device>::initialize(calibration_file);
+    Chip<Device, FT>::initialize(calibration_file);
     // Read calibration data from EEPROM
     Words words = this->device().read_words(0xAA, 11);
     set_calibration_data(words);
   }
-  using Chip<Device>::initialize;
+  using Chip<Device, FT>::initialize;
   virtual void poll() {
     if (loop_count_ % 120 == 0) {
       loop_count_ = 0;
@@ -315,11 +311,12 @@ struct BMP085T: public Chip<Device> {
       int32_t pressure = (raw_pressure[0] << 16) + (raw_pressure[1] << 8) + raw_pressure[0];
       pressure >>= (8 - oss_);
       pressure = eval_pressure(pressure);
-      Sample sample = Sample(Point(
-          0, 0, static_cast<Scalar>(pressure)), 
-          static_cast<Scalar>(temp_),
-          this->calibration()); 
-      this->push_sample(sample);
+
+      
+      //this->push_sample(
+      //  Sample<FT>(Point<FT>(
+      //      0, 0, static_cast<Scalar<FT> >(pressure)), 
+      //      static_cast<Scalar<FT> >(temp_))); 
     }
     loop_count_++;
   }
@@ -354,8 +351,8 @@ private:
   int32_t temp_;
 };
 
-template <class Device>
-void BMP085T<Device>::set_calibration_data(const Words& calibration_data)
+template <class Device, typename FT>
+void BMP085T<Device, FT>::set_calibration_data(const Words& calibration_data)
 {
   ac1_ = static_cast<int16_t>(calibration_data[0]);
   ac2_ = static_cast<int16_t>(calibration_data[1]);
@@ -370,8 +367,8 @@ void BMP085T<Device>::set_calibration_data(const Words& calibration_data)
   md_ = static_cast<int16_t>(calibration_data[10]);
 }
 
-template <class Device>
-int32_t BMP085T<Device>::eval_temp(const Word raw_temp)
+template <class Device, typename FT>
+int32_t BMP085T<Device, FT>::eval_temp(const Word raw_temp)
 {
   int32_t result = static_cast<int32_t>(raw_temp);
   int32_t x1 = ((result - ac6_) * ac5_) >>  15;
@@ -381,8 +378,8 @@ int32_t BMP085T<Device>::eval_temp(const Word raw_temp)
   return result;
 }
 
-template <class Device>
-int32_t BMP085T<Device>::eval_pressure(const int32_t raw_pressure)
+template <class Device, typename FT>
+int32_t BMP085T<Device, FT>::eval_pressure(const int32_t raw_pressure)
 {
   int32_t result = 0;
   int32_t b6 = b5_ - 4000;
@@ -411,7 +408,7 @@ int32_t BMP085T<Device>::eval_pressure(const int32_t raw_pressure)
 typedef BMP085T<I2C_device> BMP085;
 
 
-template <class Device>
+template <class Device, typename FT=DefaultFT>
 struct BNO055T: public Chip<Device> {
   virtual std::string chip_name() { return "bno055"; }
   virtual void initialize(const std::string& calibration_file="") {

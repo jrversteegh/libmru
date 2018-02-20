@@ -12,13 +12,15 @@
 #include "../../include/calibration.h"
 
 using namespace std;
-using namespace mru;
 
 boost::filesystem::path app_path;
 
+using Calibration = mru::Calibration<float>;
+using Scalar = mru::Scalar<float>;
+
 class CalibrationTest: public CppUnit::TestFixture {
   void testLoad() {
-    Calibration calibration = load_calibration(app_path/"calibration/test.ini", "test");
+    Calibration calibration = mru::load_calibration(app_path/"calibration/test.ini", "test");
     CPPUNIT_ASSERT_EQUAL((Scalar)8.8, calibration.x_factor());
     CPPUNIT_ASSERT_EQUAL((Scalar)9.9, calibration.x_offset());
     CPPUNIT_ASSERT_EQUAL((Scalar)88, calibration.y_factor());
@@ -29,22 +31,22 @@ class CalibrationTest: public CppUnit::TestFixture {
     CPPUNIT_ASSERT_EQUAL((Scalar)9900, calibration.v_offset());
   }
   void testLoadNonExisting() {
-    Calibration calibration = load_calibration(app_path/"calibration/nonexisting.ini", "test");
+    Calibration calibration = mru::load_calibration(app_path/"calibration/nonexisting.ini", "test");
     CPPUNIT_ASSERT_EQUAL((Scalar)1.0, calibration.x_factor());
   }
   void testSave() {
     Calibration calibration(1.1, 0, 1, 0, 1, 0, 1, 0);
     save_calibration(app_path / "calibration/temp.ini", "test", calibration);
-    calibration = load_calibration(app_path/"calibration/temp.ini", "test");
+    calibration = mru::load_calibration(app_path/"calibration/temp.ini", "test");
     CPPUNIT_ASSERT_EQUAL((Scalar)1.1, calibration.x_factor());
   }
   void testSaveExisting() {
     boost::filesystem::copy_file(app_path/"calibration/test.ini", app_path/"calibration/copy.ini");
     Calibration calibration(2.2, 0, 1, 0, 1, 0, 1, 0);
-    save_calibration(app_path / "calibration/copy.ini", "test_copy", calibration);
-    calibration = load_calibration(app_path/"calibration/copy.ini", "test");
+    mru::save_calibration(app_path / "calibration/copy.ini", "test_copy", calibration);
+    calibration = mru::load_calibration(app_path/"calibration/copy.ini", "test");
     CPPUNIT_ASSERT_EQUAL((Scalar)8.8, calibration.x_factor());
-    calibration = load_calibration(app_path/"calibration/copy.ini", "test_copy");
+    calibration = mru::load_calibration(app_path/"calibration/copy.ini", "test_copy");
     CPPUNIT_ASSERT_EQUAL((Scalar)2.2, calibration.x_factor());
   }
 public:

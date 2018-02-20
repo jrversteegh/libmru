@@ -72,12 +72,12 @@ public:
   CPPUNIT_TEST_SUITE_END();
 };
 
-class BMP085ForTest: public BMP085T<I2CDeviceMock> {
+class BMP085ForTest: public BMP085T<I2CDeviceMock, float> {
 public:
-  using BMP085T<I2CDeviceMock>::BMP085T;
-  using BMP085T<I2CDeviceMock>::eval_temp;
-  using BMP085T<I2CDeviceMock>::eval_pressure;
-  using BMP085T<I2CDeviceMock>::device;
+  using BMP085T<I2CDeviceMock, float>::BMP085T;
+  using BMP085T<I2CDeviceMock, float>::eval_temp;
+  using BMP085T<I2CDeviceMock, float>::eval_pressure;
+  using BMP085T<I2CDeviceMock, float>::device;
 };
 
 class BMP085Test : public CppUnit::TestFixture {
