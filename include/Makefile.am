@@ -1,1 +1,2 @@
-HDRS = calibration.h chips.h errors.h i2cbus.h types.h
+mruincludedir = $(includedir)/mru
+mruinclude_HEADERS = *.h
