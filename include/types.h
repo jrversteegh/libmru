@@ -216,7 +216,7 @@ operator-(const RotScalar<MinQ1, MaxQ1, FT1>& rs1, const RotScalar<MinQ2, MaxQ2,
 }
 
 // Define quantities provided by the sensors
-enum class Quantity {
+enum Quantity {
   Pressure,
   Temperature,
   Acceleration,
@@ -231,40 +231,64 @@ enum class Quantity {
 template<Quantity Q, typename FT=DefaultFT>
 struct Quantity_type {};
 template<typename FT>
-struct Quantity_type<Quantity::Pressure, FT> {
+struct Quantity_type<Pressure, FT> {
   typedef Scalar<FT> type;
 };
 template<typename FT>
-struct Quantity_type<Quantity::Temperature, FT> {
+struct Quantity_type<Temperature, FT> {
   typedef Scalar<FT> type;
 };
 template<typename FT>
-struct Quantity_type<Quantity::Acceleration, FT> {
+struct Quantity_type<Acceleration, FT> {
   typedef Vector<FT> type;
 };
 template<typename FT>
-struct Quantity_type<Quantity::AngularVelocity, FT> {
+struct Quantity_type<AngularVelocity, FT> {
   typedef Vector<FT> type;
 };
 template<typename FT>
-struct Quantity_type<Quantity::MagneticFlux, FT> {
+struct Quantity_type<MagneticFlux, FT> {
   typedef Vector<FT> type;
 };
 template<typename FT>
-struct Quantity_type<Quantity::Heading, FT> {
+struct Quantity_type<Heading, FT> {
   typedef RotScalar<0, 4, FT> type;
 };
 template<typename FT>
-struct Quantity_type<Quantity::Pitch, FT> {
+struct Quantity_type<Pitch, FT> {
   typedef RotScalar<-1, 1, FT> type;
 };
 template<typename FT>
-struct Quantity_type<Quantity::Roll, FT> {
+struct Quantity_type<Roll, FT> {
   typedef RotScalar<-2, 2, FT> type;
 };
 
 
-template <typename FT=DefaultFT>
+template <typename FT, Quantity... Qs>
+struct Sample {};
+
+template <typename FT, Quantity Q, Quantity... Qs>
+struct Sample<FT, Q, Qs...>: Sample<FT, Qs...> {
+  Sample<FT, Q, Qs...>(typename Quantity_type<Q>::type q, typename Quantity_type<Qs>::type... qs):
+    Sample<FT, Qs...>(qs...), value(q) {}
+  typename Quantity_type<Q, FT>::type value;
+};
+
+template <typename FT, Quantity GQ, Quantity Q, Quantity... Qs>
+inline typename std::enable_if<GQ == Q, typename Quantity_type<GQ>::type>::type
+get(const Sample<FT, Q, Qs...>& sample) {
+  typename Quantity_type<GQ>::type value = sample.value;
+  return value;
+}
+
+template <typename FT, Quantity GQ, Quantity Q, Quantity... Qs>
+inline typename std::enable_if<GQ != Q, typename Quantity_type<GQ>::type>::type
+get(const Sample<FT, Q, Qs...>& sample) {
+  return get<FT, GQ>(static_cast<Sample<FT, Qs...> >(sample));
+}
+
+/*
+template <typename FT>
 struct Sample {
   Time time;
   Vector<FT> vector;
@@ -282,14 +306,12 @@ struct Sample {
       time(utc_now()), vector(vr), value(v) {}
   Sample(Sample&& s):
       time(std::move(s.time)), vector(std::move(s.vector)), value(std::move(s.value)) {}
-  /*
   Sample(const Point<FT>& p,
          const Scalar<FT>& v, const Calibration<FT>& calibration):
       time(utc_now()) {
     vector = calibration.correction(p) - CGAL::ORIGIN;
     value = v * calibration.value_factor + calibration.value_offset;
   }
-  */
   Sample& operator=(const Sample& s) {
     time = s.time;
     vector = s.vector;
@@ -303,9 +325,10 @@ struct Sample {
     return *this;
   }
 };
+*/
 
-template <typename FT=DefaultFT>
-using Samples = std::deque<Sample<FT> >;
+template <typename FT, Quantity... Qs>
+using Samples = std::deque<Sample<FT, Qs...> >;
 
 } //namespace mru
 
