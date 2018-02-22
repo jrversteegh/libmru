@@ -33,12 +33,14 @@ along with this program.  If not, see <http://www.gnu.org/licenses/>.
 #include <CGAL/Simple_cartesian.h>
 #include <CGAL/Vector_3.h>
 
+#include "utils.h"
+#include "errors.h"
+
 namespace mru {
  
 // Default floating point type
-typedef float DefaultFT;
-
-typedef boost::posix_time::ptime Time;
+using DefaultFT = float;
+using Time = boost::posix_time::ptime;
 inline Time utc_now() {
   return boost::posix_time::microsec_clock::universal_time();
 }
@@ -52,17 +54,97 @@ using Point = typename CGAL::Simple_cartesian<FT>::Point_3;
 template<typename FT=DefaultFT>
 using Transformation = typename CGAL::Simple_cartesian<FT>::Aff_transformation_3;
 
-template<typename FT> inline
-typename std::enable_if<std::is_floating_point<FT>::value, FT>::type d2r(FT degs) {
-  static const FT rpd = 0.017453292519943295769236907684886;
-  return rpd * degs;
+
+template <typename> struct UnitQuaternion;
+
+template <typename FT=DefaultFT>
+struct Quaternion
+{
+  Quaternion() : real_(0), vector_(0, 0, 0) {}
+  Quaternion(const Scalar<FT> real, const Vector<FT>& vector) : real_(real_), vector_(vector) {}
+  Quaternion(const Quaternion<FT>& quaternion): 
+      real_(quaternion.real_), vector_(quaternion.vector_) {}
+
+  Quaternion conjugate() {
+    return Quaternion(real_, -vector_);
+  }
+
+  Scalar<FT> squared_length() const {
+    return real_ * real_ + vector_ * vector_;
+  }
+
+  template <typename> friend Quaternion operator*(const Quaternion&, const Quaternion&);
+  friend UnitQuaternion<FT>;
+  FT qr() { 
+    return real_;
+  }
+  FT qi() { 
+    return vector_[0];
+  }
+  FT qj() { 
+    return vector_[1];
+  }
+  FT qk() { 
+    return vector_[2];
+  }
+private:
+  Scalar<FT> real_;
+  Vector<FT> vector_;
+};
+
+template <typename FT>
+Quaternion<FT> operator*(const Quaternion<FT>& q, const Quaternion<FT>& r)
+{
+  return Quaternion<FT>(q.real_ * r.real_ - q.vector_ * r.vector_,
+      q.real_ * r.vector_ + r.scalar_ * q.vector_ +
+      CGAL::cross_product(q.vector_, r.vector_));
 }
 
-template<typename FT> inline 
-typename std::enable_if<std::is_floating_point<FT>::value, FT>::type r2d(FT rads) {
-  static const FT dpr = 57.295779513082320876798154814105;
-  return dpr * rads;
-}
+template <typename FT=DefaultFT>
+struct UnitQuaternion: public Quaternion<FT> {
+  UnitQuaternion() : Quaternion<FT>(0, Vector<FT>(1, 0, 0)) {}
+  UnitQuaternion(const Quaternion<FT>& quaterion): Quaternion<FT>(quaterion) {
+    normalize_();
+  }
+  UnitQuaternion(const Scalar<FT> real, const Vector<FT>& vector): Quaternion<FT>(real, vector) {
+    normalize_();
+  }
+
+  Vector<FT> rotate(const Vector<FT>& vector) {
+    // This can be optimized: there are quite a few zeroes in there
+    return (*this * Quaternion<FT>(0, vector) * this->conjugate()).vector_;
+  }
+  Transformation<FT> transformation() {
+    FT qii = sqr(this->qi());
+    FT qjj = sqr(this->qj());
+    FT qkk = sqr(this->qk());
+    FT qij = this->qi() * this->qj();
+    FT qik = this->qi() * this->qk();
+    FT qir = this->qi() * this->qr();
+    FT qjk = this->qj() * this->qk();
+    FT qjr = this->qj() * this->qr();
+    FT qkr = this->qk() * this->qr();
+
+    return Transformation<FT>(
+        1 - 2 * (qjj + qkk), 2 * (qij - qkr), 2 * (qik + qjr),
+        2 * (qij + qkr), 1 - 2 * (qii + qkk), 2 * (qjk - qir),
+        2 * (qik - qjr), 2 * (qjk + qir), 1 - 2 * (qii + qjj));
+  }
+private:
+  void normalize_() {
+    Scalar<FT> sql = this->squared_lenght();
+    if (std::fabs(sql) < std::numeric_limits<FT>::epsilon()) {
+      Scalar<FT> invl = 1 / sqrt(sql);
+      this->real_ *= invl;
+      this->vector_ *= invl;
+    }
+    else {
+      throw Error("Can't normalize 0 quaterion");
+    }
+  }
+};
+
+
 
 template <int MinQ=0, int MaxQ=4, typename FT=DefaultFT>
 struct RotScalar {
@@ -216,7 +298,7 @@ operator-(const RotScalar<MinQ1, MaxQ1, FT1>& rs1, const RotScalar<MinQ2, MaxQ2,
 }
 
 // Define quantities provided by the sensors
-enum Quantity {
+enum class Quantity {
   Pressure,
   Temperature,
   Acceleration,
@@ -225,7 +307,18 @@ enum Quantity {
   Heading,
   Pitch,
   Roll,
+  Rotation,
 };
+
+static constexpr Quantity Pressure = Quantity::Pressure;
+static constexpr Quantity Temperature = Quantity::Temperature;
+static constexpr Quantity Acceleration = Quantity::Acceleration;
+static constexpr Quantity AngularVelocity = Quantity::AngularVelocity;
+static constexpr Quantity MagneticFlux = Quantity::MagneticFlux;
+static constexpr Quantity Heading = Quantity::Heading;
+static constexpr Quantity Pitch = Quantity::Pitch;
+static constexpr Quantity Roll = Quantity::Roll;
+static constexpr Quantity Rotation = Quantity::Rotation;
 
 
 template<Quantity Q, typename FT=DefaultFT>
@@ -261,6 +354,10 @@ struct Quantity_type<Pitch, FT> {
 template<typename FT>
 struct Quantity_type<Roll, FT> {
   typedef RotScalar<-2, 2, FT> type;
+};
+template<typename FT>
+struct Quantity_type<Rotation, FT> {
+  typedef UnitQuaternion<FT> type;
 };
 
 
@@ -333,3 +430,5 @@ using Samples = std::deque<Sample<FT, Qs...> >;
 } //namespace mru
 
 #endif
+
+// vim: syntax=cpp : shiftwidth=2 : tabstop=2 : expandtab :

@@ -40,3 +40,5 @@ private:
 }  // namespace ninedof
 
 #endif
+
+// vim: syntax=cpp : shiftwidth=2 : tabstop=2 : expandtab : 
