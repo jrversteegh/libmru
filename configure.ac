@@ -17,7 +17,7 @@ AC_CONFIG_FILES([
   doc/Makefile
 ])
 
-AC_CHECK_HEADER([linux/i2c-dev.h], [], [AC_MSG_ERROR([Unable to find or use linux/i2c-dev.h. Require libi2c-dev?])],
+AC_CHECK_HEADER([linux/i2c-dev.h], [], [AC_MSG_ERROR([Unable to find or use linux/i2c-dev.h. There exist two versions of this file. Need libi2c-dev?])],
   [
    #include <linux/i2c-dev.h>
    #ifndef I2C_SMBUS_READ 
@@ -27,13 +27,13 @@ AC_CHECK_HEADER([linux/i2c-dev.h], [], [AC_MSG_ERROR([Unable to find or use linu
 )
 
 AC_LANG_PUSH([C++])
-AC_CHECK_HEADER([boost/date_time.hpp], [], [AC_MSG_ERROR([Unable to find or use boost/date_time.hpp])])
-AC_CHECK_HEADER([boost/property_tree/ptree.hpp], [], [AC_MSG_ERROR([Unable to find or use boost/property_tree/ptree.hpp])])
-AC_CHECK_HEADER([boost/filesystem.hpp], [], [AC_MSG_ERROR([Unable to find or use boost/filesystem.hpp])])
-AC_CHECK_HEADER([CGAL/Vector_3.h], [], [AC_MSG_ERROR([Unable to find or use CGAL/Vector_3.h])])
+AC_CHECK_HEADER([boost/date_time.hpp], [], [AC_MSG_ERROR([Unable to find or use boost/date_time.hpp. Need libboost-dev?])])
+AC_CHECK_HEADER([boost/property_tree/ptree.hpp], [], [AC_MSG_ERROR([Unable to find or use boost/property_tree/ptree.hpp. Need libboost-dev?])])
+AC_CHECK_HEADER([boost/filesystem.hpp], [], [AC_MSG_ERROR([Unable to find or use boost/filesystem.hpp]. Need libboost-filesystem-dev?)])
+AC_CHECK_HEADER([CGAL/Vector_3.h], [], [AC_MSG_ERROR([Unable to find or use CGAL/Vector_3.h. Need libcgal-dev?])])
 AC_LANG_POP
-AC_CHECK_LIB([boost_system], [_init], [], [AC_MSG_ERROR([Unable to find boost_system library.])])
-AC_CHECK_LIB([boost_filesystem], [_init], [], [AC_MSG_ERROR([Unable to find boost_filesystem library.])])
+AC_CHECK_LIB([boost_system], [_init], [], [AC_MSG_ERROR([Unable to find boost_system library])])
+AC_CHECK_LIB([boost_filesystem], [_init], [], [AC_MSG_ERROR([Unable to find boost_filesystem library])])
 AC_CHECK_LIB([CGAL], [_init], [], [AC_MSG_ERROR([Unable to find CGAL library.])])
 
 AC_PATH_PROG([DOXYGEN], [doxygen], [])
