@@ -122,3 +122,5 @@ extern void save_calibration(const boost::filesystem::path& filename, const std:
 }  // namespace mru
 
 #endif
+
+// vim: syntax=cpp : shiftwidth=2 : tabstop=2 : expandtab :

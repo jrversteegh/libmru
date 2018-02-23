@@ -475,3 +475,5 @@ typedef BNO055T<I2C_device> BNO055;
 } //namespace mru
 
 #endif
+
+// vim: syntax=cpp : shiftwidth=2 : tabstop=2 : expandtab :

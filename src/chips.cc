@@ -38,3 +38,5 @@ const int bno055_address = 0x28;
 
 
 /* vim: set sw=2 ts=2 et: */
+
+// vim: syntax=cpp : shiftwidth=2 : tabstop=2 : expandtab :

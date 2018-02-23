@@ -1,4 +1,8 @@
-/* 
+/** 
+ * \file
+ * \author Jaap Versteegh <j.r.versteegh@gmail.com>
+ * \brief Defines functions for calibration value handling
+ * \license
 This program is free software: you can redistribute it and/or modify
 it under the terms of the GNU General Public License as published by
 the Free Software Foundation, either version 3 of the License, or
@@ -11,11 +15,6 @@ GNU General Public License for more details.
 
 You should have received a copy of the GNU General Public License
 along with this program.  If not, see <http://www.gnu.org/licenses/>. 
-*/
-
-/** \file
- * \author Jaap Versteegh <j.r.versteegh@gmail.com>
- * Defines functions for calibration value handling
  */
 
 #include <fstream>
@@ -147,3 +146,5 @@ template void save_calibration(const std::string& filename, const std::string& s
 template void save_calibration(const boost::filesystem::path& filename, const std::string& section,
                                const Calibration<long double>& calibration);
 }  // namespace mru
+
+// vim: syntax=cpp : shiftwidth=2 : tabstop=2 : expandtab :

@@ -236,3 +236,5 @@ Words I2C_device::read_words(const int offset, const int count) const
 }  // namespace mru
 
 /* vim: set sw=2 ts=2 et: */
+
+// vim: syntax=cpp : shiftwidth=2 : tabstop=2 : expandtab :
