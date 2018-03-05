@@ -1,7 +1,7 @@
 /**
  * \file
  * \author Jaap Versteegh <j.r.versteegh@gmail.com>
- * \brief Classes for interfacing individual chips 
+ * \brief Classes for interfacing individual chips
  * \license
  * This program is free software: you can redistribute it and/or modify
  * it under the terms of the GNU General Public License as published by
@@ -12,7 +12,7 @@
  * MERCHANTABILITY or FITNESS FOR A PARTICULAR PURPOSE.  See the
  * GNU General Public License for more details.
  * You should have received a copy of the GNU General Public License
- * along with this program.  If not, see <http://www.gnu.org/licenses/>. 
+ * along with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
 #ifndef MRU_CHIPS_H
@@ -31,14 +31,6 @@
 
 namespace mru {
 
-extern const int hmc5843_address;
-extern const int hmc5883_address;
-extern const int adxl345_address;
-extern const int bma180_address;
-extern const int itg3200_address;
-extern const int itg3205_address;
-extern const int bmp085_address;
-extern const int bno055_address;
 
 template<class Device, typename FT=DefaultFT>
 struct Chip {
@@ -56,7 +48,7 @@ struct Chip {
   int id() { return id_; }
   int version() { return version_; }
   int status() { return status_; }
-  Chip(typename Device::Bus_type& bus, const int address, bool little_endian): 
+  Chip(typename Device::Bus_type& bus, const int address, bool little_endian):
       device_(bus, address, little_endian), calibration_(), data_(), history_(),
       id_(0), version_(0), status_(0) {}
 protected:
@@ -94,15 +86,74 @@ private:
 
 template<class Device, typename FT=DefaultFT>
 struct HMC5843T: public Chip<Device> {
+
+  static constexpr int default_address = 0x1E;
+
+  static constexpr uint8_t reg_config_a = 0x00;
+  enum Reg_config_a_rate: uint8_t {
+    reg_config_a_0_5hz,
+    reg_config_a_1hz,
+    reg_config_a_2hz,
+    reg_config_a_5hz,
+    reg_config_a_10hz,
+    reg_config_a_20hz,
+    reg_config_a_50hz
+  };
+  static constexpr int reg_config_a_rate_shift = 2;
+
+  static constexpr uint8_t reg_config_a_nobias = 0x00;
+
+  static constexpr uint8_t reg_config_b = 0x01;
+  enum Reg_config_b_gain: uint8_t {
+    reg_config_b_0_7g,
+    reg_config_b_1_0g,
+    reg_config_b_1_5g,
+    reg_config_b_2_0g,
+    reg_config_b_3_2g,
+    reg_config_b_3_8g,
+    reg_config_b_4_5g
+  };
+  static constexpr int reg_config_b_gain_shift = 5;
+  static constexpr Scalar<FT> gain_values[] = {
+    1620,
+    1300,
+    970,
+    780,
+    530,
+    460,
+    390,
+    280
+  };
+
+  static constexpr uint8_t reg_mode = 0x02;
+  enum Reg_mode: uint8_t {
+    reg_mode_continuous,
+    reg_mode_single,
+    reg_mode_idle,
+    reg_mode_sleep
+  };
+
+  static constexpr uint8_t reg_data = 0x03;
+  static constexpr uint8_t reg_status = 0x09;
+  static constexpr uint8_t reg_id_a = 0x0A;
+  static constexpr uint8_t reg_id_b = 0x0B;
+  static constexpr uint8_t reg_id_c = 0x0C;
+
   virtual std::string chip_name() { return "hmc5843"; }
   virtual void initialize(const std::string& calibration_file="") {
     Chip<Device>::initialize(calibration_file);
-    // 20Hz output, no bias
-    this->device().write_byte(0x00, 0x14);
+    // 10Hz output, no bias
+    this->device().write_byte(reg_config_a, reg_config_a_nobias | reg_config_a_10hz);
     // 1 Gauss range
-    this->device().write_byte(0x01, 0x20);
+    this->device().write_byte(reg_config_b, 0x20);
+
+    set_id(
+        this->device()->read_byte(reg_id_a) << 16 +
+        this->device()->read_byte(reg_id_b) << 8 +
+        this->device()->read_byte(reg_id_c));
+
     // Continuous data aquisition
-    this->device().write_byte(0x02, 0x00);
+    this->device().write_byte(reg_mode, reg_mode_continuous);
   }
   using Chip<Device>::initialize;
   virtual void poll() {
@@ -114,31 +165,36 @@ struct HMC5843T: public Chip<Device> {
         static_cast<Scalar<FT> >(static_cast<int16_t>(words[0])),
         static_cast<Scalar<FT> >(static_cast<int16_t>(words[1])),
         static_cast<Scalar<FT> >(static_cast<int16_t>(words[2]))};
-    
+
     //this->push_sample(Sample<FT>(point, 0);
     //}
   }
   virtual void finalize() {
     // Put device to sleep
-    this->device().write_byte(0x02, 0x03);
+    this->device().write_byte(reg_mode, reg_mode_sleep);
+  }
+
+  void set_output_rate(Reg_config_a_rate rate) {
   }
   HMC5843T(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, false) {}
-  HMC5843T(typename Device::Bus_type& bus): Chip<Device>(bus, hmc5843_address, false) {}
+  HMC5843T(typename Device::Bus_type& bus): Chip<Device>(bus, default_address, false) {}
 };
 
 typedef HMC5843T<I2C_device> HMC5843;
 
 template<class Device, typename FT=DefaultFT>
 struct HMC5883T: public HMC5843T<Device> {
+  static constexpr int default_address = 0x1E;
   virtual std::string chip_name() { return "hmc5883"; }
   HMC5883T(typename Device::Bus_type& bus, const int address): HMC5843T<Device>(bus, address) {}
-  HMC5883T(typename Device::Bus_type& bus): HMC5843T<Device>(bus, hmc5883_address) {}
+  HMC5883T(typename Device::Bus_type& bus): HMC5843T<Device>(bus, default_address) {}
 };
 
 typedef HMC5883T<I2C_device> HMC5883;
 
 template<class Device, typename FT=DefaultFT>
 struct ADXL345T: public Chip<Device> {
+  static constexpr int default_address = 0x53;
   virtual std::string chip_name() { return "adxl345"; }
   virtual void initialize(const std::string& calibration_file="") {
     Chip<Device>::initialize(calibration_file);
@@ -167,13 +223,14 @@ struct ADXL345T: public Chip<Device> {
     this->device().write_byte(0x2D, 0x07);
   }
   ADXL345T(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, true) {}
-  ADXL345T(typename Device::Bus_type& bus): Chip<Device>(bus, adxl345_address, true) {}
+  ADXL345T(typename Device::Bus_type& bus): Chip<Device>(bus, default_address, true) {}
 };
 
 typedef ADXL345T<I2C_device> ADXL345;
 
 template<class Device, typename FT=DefaultFT>
 struct BMA180T: public Chip<Device> {
+  static constexpr int default_address = 0x40;  // alternative 0x41
   virtual std::string chip_name() { return "bma180"; }
   virtual void initialize(const std::string& calibration_file="") {
     Chip<Device>::initialize(calibration_file);
@@ -229,13 +286,15 @@ struct BMA180T: public Chip<Device> {
     this->device().write_byte(0x0D, 0x02);
   }
   BMA180T(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, true) {}
-  BMA180T(typename Device::Bus_type& bus): Chip<Device>(bus, bma180_address, true) {}
+  BMA180T(typename Device::Bus_type& bus): Chip<Device>(bus, default_address, true) {}
 };
 
 typedef BMA180T<I2C_device> BMA180;
 
 template<class Device, typename FT=DefaultFT>
 struct ITG3200T: public Chip<Device> {
+  static constexpr int default_address = 0x68;
+
   virtual std::string chip_name() { return "itg3200"; }
   virtual void initialize(const std::string& calibration_file="") {
     Chip<Device>::initialize(calibration_file);
@@ -267,22 +326,24 @@ struct ITG3200T: public Chip<Device> {
     this->device().write_byte(0x3E, 0x40);
   }
   ITG3200T(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, false) {}
-  ITG3200T(typename Device::Bus_type& bus): Chip<Device>(bus, itg3200_address, false) {}
+  ITG3200T(typename Device::Bus_type& bus): Chip<Device>(bus, default_address, false) {}
 };
 
 typedef ITG3200T<I2C_device> ITG3200;
 
 template<class Device, typename FT=DefaultFT>
 struct ITG3205T: public ITG3200T<Device> {
+  static constexpr int default_address = 0x68; // alternative 0x69: pin 9 high
   virtual std::string chip_name() { return "itg3205"; }
   ITG3205T(typename Device::Bus_type& bus, const int address): ITG3200T<Device>(bus, address) {}
-  ITG3205T(typename Device::Bus_type& bus): ITG3200T<Device>(bus, itg3205_address) {}
+  ITG3205T(typename Device::Bus_type& bus): ITG3200T<Device>(bus, default_address) {}
 };
 
 typedef ITG3205T<I2C_device> ITG3205;
 
 template<class Device, typename FT=DefaultFT>
 struct BMP085T: public Chip<Device, FT> {
+  static constexpr int default_address = 0x77;
   virtual std::string chip_name() { return "bmp085"; }
   virtual void initialize(const std::string& calibration_file="") {
     Chip<Device, FT>::initialize(calibration_file);
@@ -309,20 +370,20 @@ struct BMP085T: public Chip<Device, FT> {
       pressure >>= (8 - oss_);
       pressure = eval_pressure(pressure);
 
-      
+
       //this->push_sample(
       //  Sample<FT>(Point<FT>(
-      //      0, 0, static_cast<Scalar<FT> >(pressure)), 
-      //      static_cast<Scalar<FT> >(temp_))); 
+      //      0, 0, static_cast<Scalar<FT> >(pressure)),
+      //      static_cast<Scalar<FT> >(temp_)));
     }
     loop_count_++;
   }
   virtual void finalize() {
   }
-  BMP085T(typename Device::Bus_type& bus, const int address, const int oss): 
+  BMP085T(typename Device::Bus_type& bus, const int address, const int oss):
         Chip<Device>(bus, address, false), loop_count_(0), oss_(oss) {}
   BMP085T(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, false), loop_count_(0), oss_(3) {}
-  BMP085T(typename Device::Bus_type& bus): Chip<Device>(bus, bmp085_address, false), loop_count_(0), oss_(3) {}
+  BMP085T(typename Device::Bus_type& bus): Chip<Device>(bus, default_address, false), loop_count_(0), oss_(3) {}
 protected:
   int32_t eval_temp(const Word raw_temp);
   int32_t eval_pressure(const int32_t raw_pressure);
@@ -391,7 +452,7 @@ int32_t BMP085T<Device, FT>::eval_pressure(const int32_t raw_pressure)
   uint32_t b7 = ((uint32_t)raw_pressure - b3) * (50000 >> oss_);
   if (b7 < 0x80000000) {
     result = (b7 * 2) / b4;
-  } 
+  }
   else {
     result = (b7 / b4) * 2;
   }
@@ -407,6 +468,7 @@ typedef BMP085T<I2C_device> BMP085;
 
 template <class Device, typename FT=DefaultFT>
 struct BNO055T: public Chip<Device> {
+  static constexpr int default_address = 0x28;
   virtual std::string chip_name() { return "bno055"; }
   virtual void initialize(const std::string& calibration_file="") {
     Chip<Device>::initialize(calibration_file);
@@ -443,7 +505,7 @@ struct BNO055T: public Chip<Device> {
     // Expected the "sensor fusion algorithm running" bit to be set. Toggle that so status becomes 0
     // when everything is as expected. Any bits set either indicate an unexpected state or an error
     this->set_status(status ^ 0x0020);
-    
+
     calibration_ = this->device()->read_byte(0x35);
   }
   virtual void finalize() {
@@ -456,10 +518,10 @@ struct BNO055T: public Chip<Device> {
     // Suspend the chip
     this->device()->write_byte(0x3E, 0x02);
   }
-  BNO055T(typename Device::Bus_type& bus, const int address, const int oss): 
+  BNO055T(typename Device::Bus_type& bus, const int address, const int oss):
         Chip<Device>(bus, address, false), calibration_(0) {}
   BNO055T(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, false), calibration_(0) {}
-  BNO055T(typename Device::Bus_type& bus): Chip<Device>(bus, bno055_address, false), calibration_(0) {}
+  BNO055T(typename Device::Bus_type& bus): Chip<Device>(bus, default_address, false), calibration_(0) {}
   int get_calibrarion() {
     return calibration_;
   }
