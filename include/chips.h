@@ -135,6 +135,9 @@ struct HMC5843T: public Chip<Device> {
 
   static constexpr uint8_t reg_data = 0x03;
   static constexpr uint8_t reg_status = 0x09;
+  static constexpr uint8_t reg_status_rdy = 0x01;  // data ready
+  static constexpr uint8_t reg_status_lock = 0x02; // registers locked
+  static constexpr uint8_t reg_status_ren = 0x04;  // voltage regulator enabled
   static constexpr uint8_t reg_id_a = 0x0A;
   static constexpr uint8_t reg_id_b = 0x0B;
   static constexpr uint8_t reg_id_c = 0x0C;
@@ -145,7 +148,7 @@ struct HMC5843T: public Chip<Device> {
     // 10Hz output, no bias
     this->device().write_byte(reg_config_a, reg_config_a_nobias | reg_config_a_10hz);
     // 1 Gauss range
-    this->device().write_byte(reg_config_b, 0x20);
+    this->device().write_byte(reg_config_b, reg_config_b_1_0g << reg_config_b_gain_shift);
 
     set_id(
         this->device()->read_byte(reg_id_a) << 16 +
@@ -157,9 +160,9 @@ struct HMC5843T: public Chip<Device> {
   }
   using Chip<Device>::initialize;
   virtual void poll() {
-    //Byte ready = this->device().read_byte(0x09) & 0x01;
+    //auto ready = this->device().read_byte(reg_status) & reg_status_rdy;
     //if (ready) {
-    Words words = this->device().read_words(0x03, 3);
+    Words words = this->device().read_words(reg_data, 3);
 
     auto point = Point<FT>{
         static_cast<Scalar<FT> >(static_cast<int16_t>(words[0])),
@@ -176,7 +179,8 @@ struct HMC5843T: public Chip<Device> {
 
   void set_output_rate(Reg_config_a_rate rate) {
   }
-  HMC5843T(typename Device::Bus_type& bus, const int address): Chip<Device>(bus, address, false) {}
+  HMC5843T(typename Device::Bus_type& bus, const int address): 
+      Chip<Device>(bus, address, false) {}
   HMC5843T(typename Device::Bus_type& bus): Chip<Device>(bus, default_address, false) {}
 };
 
