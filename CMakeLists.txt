@@ -4,14 +4,14 @@ project(libmru)
 
 list(APPEND CMAKE_MODULE_PATH "${CMAKE_CURRENT_SOURCE_DIR}/CMakeModules")
 
-find_package(CGAL REQUIRED)
+#set(Boost_DEBUG ON)
+set(BUILD_SHARED_LIBS ON)
+find_package(Boost 1.67 REQUIRED COMPONENTS date_time filesystem)
 
-set(Boost_USE_MULTITHREADED ON) 
-find_package(Boost REQUIRED COMPONENTS filesystem date_time)
+find_package(CGAL REQUIRED)
 
 include_directories(PRIVATE include)
 include(${CGAL_USE_FILE})
-link_libraries(${Boost_LIBRARIES})
 
 # use C++11
 set(CMAKE_CXX_FLAGS "-std=c++11")
