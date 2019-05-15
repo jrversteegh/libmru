@@ -19,7 +19,9 @@
 
 extern "C" {
   #include <stddef.h>
+  #include <sys/ioctl.h>
   #include <linux/i2c-dev.h>
+  #include <i2c/smbus.h>
   #include <byteswap.h>
   #include <endian.h>
   #include <fcntl.h>

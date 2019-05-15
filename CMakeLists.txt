@@ -12,6 +12,7 @@ find_package(CGAL REQUIRED)
 
 include_directories(PRIVATE include)
 include(${CGAL_USE_FILE})
+link_libraries(i2c)
 
 # use C++11
 set(CMAKE_CXX_FLAGS "-std=c++11")
