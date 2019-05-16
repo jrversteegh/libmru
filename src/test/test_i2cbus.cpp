@@ -24,15 +24,15 @@ class I2CBusTest: public CppUnit::TestFixture {
     I2C_bus bus(busno);
     Ints addrs = bus.scan();
     CPPUNIT_ASSERT_EQUAL(3, (int)addrs.size());
-    CPPUNIT_ASSERT_EQUAL(hmc5883_address, addrs[0]);
-    CPPUNIT_ASSERT_EQUAL(adxl345_address, addrs[1]);
-    CPPUNIT_ASSERT_EQUAL(itg3200_address, addrs[2]);
+    CPPUNIT_ASSERT_EQUAL(HMC5883::default_address, addrs[0]);
+    CPPUNIT_ASSERT_EQUAL(ADXL345::default_address, addrs[1]);
+    CPPUNIT_ASSERT_EQUAL(ITG3200::default_address, addrs[2]);
   }
   void testDeviceRead() {
     // This test may fail when the sensor values changes between reads
     const int regaddr = 0x2C;
     I2C_bus bus(busno);
-    I2C_device device(bus, adxl345_address);
+    I2C_device device(bus, ADXL345::default_address);
     Byte b = device.read_byte(regaddr);
     Word w = device.read_word(regaddr);
     Words ws = device.read_words(regaddr, 2);
@@ -44,7 +44,7 @@ class I2CBusTest: public CppUnit::TestFixture {
     CPPUNIT_ASSERT_EQUAL((int)bs[2], ((int)ws[1] & 0xFF));
     CPPUNIT_ASSERT_EQUAL((int)bs[3], ((int)ws[1] >> 8));
     // Test big endian word reading
-    I2C_device device2 = I2C_device(bus, adxl345_address, false);
+    I2C_device device2 = I2C_device(bus, ADXL345::default_address, false);
     w = device2.read_word(regaddr);
     ws = device2.read_words(regaddr, 2);
     // This is somewhat arbitrary: we demand the bytes are different so
@@ -56,7 +56,7 @@ class I2CBusTest: public CppUnit::TestFixture {
   }
   void testDeviceWrite() {
     I2C_bus bus(busno);
-    I2C_device device(bus, adxl345_address);
+    I2C_device device(bus, ADXL345::default_address);
     Bytes bs;
     bs.push_back(0x08);
     bs.push_back(0x80);
@@ -66,7 +66,7 @@ class I2CBusTest: public CppUnit::TestFixture {
     device.write_word(0x2D, 0x9008);
     b = device.read_byte(0x2E);
     CPPUNIT_ASSERT_EQUAL(0x90, (int)b);
-    I2C_device device2(bus, adxl345_address, false);
+    I2C_device device2(bus, ADXL345::default_address, false);
     Words ws;
     ws.push_back(0x0880);
     device2.write_words(0x2D, ws);

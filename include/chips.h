@@ -150,10 +150,10 @@ struct HMC5843T: public Chip<Device> {
     // 1 Gauss range
     this->device().write_byte(reg_config_b, reg_config_b_1_0g << reg_config_b_gain_shift);
 
-    set_id(
-        (this->device()->read_byte(reg_id_a) << 16) +
-        (this->device()->read_byte(reg_id_b) << 8) +
-        this->device()->read_byte(reg_id_c));
+    this->set_id(
+        (this->device().read_byte(reg_id_a) << 16) +
+        (this->device().read_byte(reg_id_b) << 8) +
+        this->device().read_byte(reg_id_c));
 
     // Continuous data aquisition
     this->device().write_byte(reg_mode, reg_mode_continuous);

@@ -36,7 +36,7 @@ using namespace mru;
 using namespace std;
 using namespace std::chrono;
 
-ostream& operator<<(ostream& o, const Vector& v) {
+ostream& operator<<(ostream& o, const Vector<double>& v) {
   o << fixed << setprecision(3);
   o << setw(8) << v.x();
   o << setw(8) << v.y();
@@ -95,6 +95,7 @@ int main(int argc, char* argv[])
       acceleration.poll();
       gyro.poll();
 
+      /*
       cout << 
         compass.data().time << " ## " <<
         compass.data().vector << " ## " <<
@@ -102,6 +103,7 @@ int main(int argc, char* argv[])
         gyro.data().vector << " ## " <<
         setw(8) << gyro.data().value <<
         endl;
+        */
     }
 
     compass.finalize();
